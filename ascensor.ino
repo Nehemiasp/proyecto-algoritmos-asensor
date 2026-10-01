@@ -1,39 +1,31 @@
 /*
   Ascensor de 4 pisos - Planificacion FCFS vs LOOK
-  Curso de Algoritmos - UMG
-  Placa: Arduino Mega 2560
-
+  Curso de Algoritmos - UMG | Arduino Mega 2560
   Boton de modo (pin 34) alterna entre los dos algoritmos.
-  El LCD muestra piso actual, direccion, modo, pisos recorridos
-  y solicitudes pendientes.
 */
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-// true  = pruebas en Wokwi (pisos cortos para no esperar tanto)
-// false = maqueta real
-const bool MODO_SIMULACION = true;
+const bool MODO_SIMULACION = true;    // true = Wokwi (pisos cortos), false = maqueta real
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);   // si no enciende, prueba 0x3F
 
-// ---------- Pines ----------
 const byte MOTOR[4]       = {8, 9, 10, 11};
 const byte BTN_PASILLO[6] = {22, 23, 24, 25, 26, 27};
 const byte BTN_CABINA[4]  = {30, 31, 32, 33};
 const byte PIN_MODO       = 34;
 const byte PIN_LIMITE     = 35;
 
-// Que solicitud representa cada boton de pasillo
+// Piso y sentido que representa cada boton de pasillo
 const byte PISO_PASILLO[6] = {1, 2, 2, 3, 3, 4};
 const bool ES_SUBIR[6]     = {true, true, false, true, false, false};
 
-// ---------- Constantes a calibrar ----------
 const int  PISOS = 4;
 const long PASOS_PISO = MODO_SIMULACION ? 1500 : 6500;  // ajustar segun tu polea
 const unsigned long US_PASO   = 1400;   // mas alto = mas lento
-const unsigned long MS_PUERTA = 2500;   // tiempo de puerta abierta
-const unsigned long MS_REBOTE = 25;     // antirrebote
+const unsigned long MS_PUERTA = 2500;
+const unsigned long MS_REBOTE = 25;
 const byte COLA_MAX = 20;
 
 // Secuencia de medio paso del 28BYJ-48
@@ -42,7 +34,6 @@ const byte SEC[8][4] = {
   {0,0,1,0}, {0,0,1,1}, {0,0,0,1}, {1,0,0,1}
 };
 
-// ---------- Estado del ascensor ----------
 int  pisoActual = 1;
 int  dir = 0;                 // 1 sube, -1 baja, 0 quieto
 long pasosRestantes = 0;
@@ -64,11 +55,9 @@ enum Estado { QUIETO, MOVIENDO, PUERTA };
 Estado estado = QUIETO;
 unsigned long tPuerta = 0;
 
-// Antirrebote: 6 pasillo + 4 cabina + 1 modo
-bool estadoPrevio[11];
+bool estadoPrevio[11];        // antirrebote: 6 pasillo + 4 cabina + 1 modo
 unsigned long ultimaLectura = 0;
 
-// Prototipos
 void leerBotones();
 void registrarPasillo(byte idx);
 void registrarCabina(int p);
@@ -92,7 +81,6 @@ void irAlOrigen();
 void actualizarLCD();
 void imprimirLinea(byte fila, const char* texto);
 
-// ============================================================
 void setup() {
   Serial.begin(9600);
 
@@ -130,7 +118,6 @@ void loop() {
   }
 }
 
-// ============================================================
 // Homing: baja hasta presionar el final de carrera
 void irAlOrigen() {
   Serial.println("Homing: bajando hasta el final de carrera (pin 35)...");
@@ -144,10 +131,8 @@ void irAlOrigen() {
   Serial.println("Final de carrera detectado: piso 1");
 }
 
-// ============================================================
-// LECTURA DE BOTONES
-// Se llama en cada vuelta del loop, incluso mientras el motor se
-// mueve, para que las solicitudes se registren en cualquier momento.
+// Se llama en cada vuelta del loop, incluso moviendo, para registrar
+// solicitudes en cualquier momento.
 void leerBotones() {
   if (millis() - ultimaLectura < MS_REBOTE) return;
   ultimaLectura = millis();
@@ -201,8 +186,6 @@ void registrarCabina(int p) {
   Serial.println(p);
 }
 
-// ============================================================
-// COLA FIFO (modo FCFS)
 void encolar(int p) {
   for (byte i = colaIni; i != colaFin; i = (i + 1) % COLA_MAX)
     if (cola[i] == p) return;           // ya esta pendiente
@@ -225,8 +208,6 @@ void limpiarTodo() {
   colaIni = colaFin = 0;
 }
 
-// ============================================================
-// EL ALGORITMO
 void decidir() {
   if (modoLOOK) decidirLOOK();
   else          decidirFCFS();
@@ -265,7 +246,6 @@ void decidirFCFS() {
   iniciarMovimiento();
 }
 
-// Regla central de LOOK
 bool debeParar(int p, int d) {
   if (cabina[p]) return true;
   if (d >= 0 && subir[p]) return true;
@@ -295,8 +275,6 @@ bool hayAbajo(int p) {
   return false;
 }
 
-// ============================================================
-// MOVIMIENTO
 void iniciarMovimiento() {
   pasosRestantes = PASOS_PISO;
   estado = MOVIENDO;
@@ -340,9 +318,7 @@ void abrirPuerta() {
   Serial.println(pisoActual);
 }
 
-// ============================================================
-// LCD: cada linea se rellena a 16 caracteres para que no queden
-// restos de textos anteriores en pantalla.
+// Rellena cada linea a 16 caracteres para borrar restos del texto anterior
 void imprimirLinea(byte fila, const char* texto) {
   lcd.setCursor(0, fila);
   byte n = 0;
