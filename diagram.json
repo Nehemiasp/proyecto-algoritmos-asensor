@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "author": "Nehemias",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-arduino-mega",
+      "id": "mega",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -200,
+      "left": 20,
+      "attrs": {
+        "pins": "i2c"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "p1_sube",
+      "top": 260,
+      "left": 0,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "p2_sube",
+      "top": 260,
+      "left": 80,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "p2_baja",
+      "top": 260,
+      "left": 160,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "p3_sube",
+      "top": 260,
+      "left": 240,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "p3_baja",
+      "top": 260,
+      "left": 320,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "p4_baja",
+      "top": 260,
+      "left": 400,
+      "attrs": {
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "cab_1",
+      "top": 350,
+      "left": 0,
+      "attrs": {
+        "color": "blue"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "cab_2",
+      "top": 350,
+      "left": 80,
+      "attrs": {
+        "color": "blue"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "cab_3",
+      "top": 350,
+      "left": 160,
+      "attrs": {
+        "color": "blue"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "cab_4",
+      "top": 350,
+      "left": 240,
+      "attrs": {
+        "color": "blue"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "modo",
+      "top": 350,
+      "left": 320,
+      "attrs": {
+        "color": "yellow"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "fin_carrera",
+      "top": 350,
+      "left": 400,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "motor_in1",
+      "top": -120,
+      "left": 380,
+      "attrs": {
+        "color": "orange"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "motor_in2",
+      "top": -120,
+      "left": 420,
+      "attrs": {
+        "color": "orange"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "motor_in3",
+      "top": -120,
+      "left": 460,
+      "attrs": {
+        "color": "orange"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "motor_in4",
+      "top": -120,
+      "left": 500,
+      "attrs": {
+        "color": "orange"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "lcd:GND",
+      "mega:GND.2",
+      "black",
+      []
+    ],
+    [
+      "lcd:VCC",
+      "mega:5V",
+      "red",
+      []
+    ],
+    [
+      "lcd:SDA",
+      "mega:20",
+      "blue",
+      []
+    ],
+    [
+      "lcd:SCL",
+      "mega:21",
+      "purple",
+      []
+    ],
+    [
+      "p1_sube:1.l",
+      "mega:22",
+      "green",
+      []
+    ],
+    [
+      "p1_sube:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "p2_sube:1.l",
+      "mega:23",
+      "green",
+      []
+    ],
+    [
+      "p2_sube:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "p2_baja:1.l",
+      "mega:24",
+      "green",
+      []
+    ],
+    [
+      "p2_baja:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "p3_sube:1.l",
+      "mega:25",
+      "green",
+      []
+    ],
+    [
+      "p3_sube:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "p3_baja:1.l",
+      "mega:26",
+      "green",
+      []
+    ],
+    [
+      "p3_baja:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "p4_baja:1.l",
+      "mega:27",
+      "green",
+      []
+    ],
+    [
+      "p4_baja:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "cab_1:1.l",
+      "mega:30",
+      "green",
+      []
+    ],
+    [
+      "cab_1:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "cab_2:1.l",
+      "mega:31",
+      "green",
+      []
+    ],
+    [
+      "cab_2:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "cab_3:1.l",
+      "mega:32",
+      "green",
+      []
+    ],
+    [
+      "cab_3:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "cab_4:1.l",
+      "mega:33",
+      "green",
+      []
+    ],
+    [
+      "cab_4:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "modo:1.l",
+      "mega:34",
+      "green",
+      []
+    ],
+    [
+      "modo:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "fin_carrera:1.l",
+      "mega:35",
+      "green",
+      []
+    ],
+    [
+      "fin_carrera:2.l",
+      "mega:GND.1",
+      "black",
+      []
+    ],
+    [
+      "motor_in1:A",
+      "mega:8",
+      "orange",
+      []
+    ],
+    [
+      "motor_in1:C",
+      "mega:GND.3",
+      "black",
+      []
+    ],
+    [
+      "motor_in2:A",
+      "mega:9",
+      "orange",
+      []
+    ],
+    [
+      "motor_in2:C",
+      "mega:GND.3",
+      "black",
+      []
+    ],
+    [
+      "motor_in3:A",
+      "mega:10",
+      "orange",
+      []
+    ],
+    [
+      "motor_in3:C",
+      "mega:GND.3",
+      "black",
+      []
+    ],
+    [
+      "motor_in4:A",
+      "mega:11",
+      "orange",
+      []
+    ],
+    [
+      "motor_in4:C",
+      "mega:GND.3",
+      "black",
+      []
+    ]
+  ]
+}
