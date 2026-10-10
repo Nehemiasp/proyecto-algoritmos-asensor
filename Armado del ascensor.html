@@ -1,0 +1,915 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Armado del ascensor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* Maqueta a pantalla completa; a la derecha, la ficha del paso como hoja de taller. En celular, la ficha baja como hoja inferior. */
+:root{
+  --bg:#dfe5e1; --ink:#15211d; --muted:#586a63; --panel:rgba(255,255,255,.94);
+  --line:#ccd7d1; --chip:#edf2ef; --accent:#ea580c; --accent-ink:#ffffff; --warn-bg:#fff4e8; --warn:#b45309;
+  --shadow:0 10px 30px rgba(20,40,32,.16);
+  --f-display:'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111916; --ink:#e6eeea; --muted:#94a69e; --panel:rgba(24,34,30,.95);
+    --line:#2c3b35; --chip:#22302a; --accent:#fb7a2e; --accent-ink:#1b0c02; --warn-bg:#2d2114; --warn:#f6ad55;
+    --shadow:0 10px 30px rgba(0,0,0,.45); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111916; --ink:#e6eeea; --muted:#94a69e; --panel:rgba(24,34,30,.95);
+  --line:#2c3b35; --chip:#22302a; --accent:#fb7a2e; --accent-ink:#1b0c02; --warn-bg:#2d2114; --warn:#f6ad55;
+  --shadow:0 10px 30px rgba(0,0,0,.45); color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{position:relative;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--f-display);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:15px;padding-inline:16px;text-align:center}
+
+.brand{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;pointer-events:none;max-width:30ch}
+.brand h1{margin:0;font-size:22px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
+.brand p{margin:4px 0 0;font-size:13px;color:var(--muted);line-height:1.35}
+
+.info{position:absolute;left:16px;bottom:16px;max-width:min(320px,calc(100% - 32px));background:var(--panel);border-radius:14px;box-shadow:var(--shadow);
+  padding:11px 38px 11px 14px;border-left:4px solid var(--accent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.info b{display:block;font-size:15px;margin-bottom:2px}
+.info span{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.info button{position:absolute;top:6px;right:6px;border:0;background:transparent;width:28px;height:28px;border-radius:8px;font-size:18px;color:var(--muted)}
+
+.panel{position:absolute;top:16px;right:16px;bottom:16px;width:380px;display:flex;flex-direction:column;background:var(--panel);border-radius:18px;
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow:hidden}
+.track{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;padding:14px 16px 0}
+.track button{border:0;height:8px;border-radius:4px;background:var(--line);padding:0}
+.track button.done{background:var(--ink);opacity:.55}
+.track button[aria-current="step"]{background:var(--accent);opacity:1}
+.head{padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+.kicker{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.head h2{margin:4px 0 0;font-size:26px;line-height:1.08;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.body{flex:1;overflow:auto;padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.body ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:7px}
+.body li{font-size:14.5px;line-height:1.45}
+.body li::marker{color:var(--accent);font-weight:700}
+.warn{background:var(--warn-bg);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.45}
+.warn b{color:var(--warn)}
+.pieces{display:flex;flex-wrap:wrap;gap:6px}
+.pieces span{background:var(--chip);border-radius:8px;padding:5px 9px;font-size:13px}
+.plabel{font-size:12.5px;color:var(--muted);margin-bottom:-4px}
+.nav{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.nav button{border:0;border-radius:12px;padding:12px 14px;font-weight:700;font-size:15px}
+#prev{background:var(--chip)}
+#next{flex:1;background:var(--accent);color:var(--accent-ink)}
+#prev:disabled{opacity:.4;cursor:default}
+.tip{font-size:12.5px;color:var(--muted)}
+.body li b{font-weight:700}
+.tw{overflow-x:auto}
+.tplbtn{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:#ffffff;border-radius:12px;padding:8px;text-align:center}
+.tplbtn img{display:block;width:100%;height:auto;border-radius:6px}
+.tplbtn span{font-size:12.5px;font-weight:600;color:#c2410c}
+.zoom{position:fixed;inset:0;z-index:10;background:rgba(10,16,14,.82);display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.zbar{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#ffffff;padding-bottom:10px;font-size:16px}
+.zbar button{border:0;border-radius:10px;padding:9px 14px;font-weight:700;background:#ffffff;color:#15211d}
+.zimg{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;background:#ffffff;border-radius:12px}
+.zimg img{max-width:100%;max-height:100%;object-fit:contain}
+@media (max-width:760px){.zimg{align-items:flex-start;justify-content:flex-start}.zimg img{max-width:none;max-height:none;width:1100px}}
+.cuts{width:100%;border-collapse:collapse;font-size:13px}
+.cuts th{text-align:left;font-weight:600;color:var(--muted);padding:4px 6px;border-bottom:1px solid var(--line)}
+.cuts td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}
+.cuts .lt{font-weight:800;color:var(--accent)}
+.cuts .num{white-space:nowrap;font-variant-numeric:tabular-nums}
+.glos{border-top:1px solid var(--line);padding-top:10px}
+.glos summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent)}
+.glos dl{margin:8px 0 0;display:grid;gap:6px}
+.glos dt{font-weight:700;font-size:13.5px}
+.glos dd{margin:0 0 4px;font-size:13.5px;line-height:1.4;color:var(--muted)}
+
+@media (max-width:760px){
+  .brand h1{font-size:19px}
+  .brand p{display:none}
+  .panel{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:48%}
+  .head h2{font-size:21px}
+  .info{bottom:auto;top:calc(56px + env(safe-area-inset-top,0px));left:12px}
+  .tip{display:none}
+}
+</style>
+
+<canvas id="scene" aria-label="Maqueta 3D del ascensor. Arrastrá para girar."></canvas>
+<div class="loading" id="loading">Cargando la maqueta…</div>
+
+<header class="brand">
+  <h1>Armado del ascensor</h1>
+  <p>Arrastrá para girar, pellizcá para acercar. Tocá una pieza para ver qué es.</p>
+</header>
+
+<div class="info" id="info" hidden role="status"><b id="infoT"></b><span id="infoD"></span><button id="infoX" aria-label="Cerrar">×</button></div>
+
+<div class="zoom" id="zoom" hidden role="dialog" aria-label="Plantilla de cortes">
+  <div class="zbar"><b>Plantilla de cortes</b><button id="zoomX">Cerrar</button></div>
+  <div class="zimg"><img id="zoomImg" alt="Plantilla de cortes: cómo acomodar todas las piezas en los dos pliegos de cartón pluma de 70 × 50 cm"></div>
+</div>
+
+<section class="panel" id="panel" aria-label="Pasos de armado">
+  <nav class="track" id="track" aria-label="Pasos"></nav>
+  <div class="head">
+    <div class="kicker"><span id="kStep"></span><span id="kPart"></span></div>
+    <h2 id="sTitle"></h2>
+  </div>
+  <div class="body" id="sBody"></div>
+  <div class="nav">
+    <button id="prev">Anterior</button>
+    <button id="next">Siguiente</button>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+if (!window.THREE || !THREE.OrbitControls) { $('#loading').textContent = 'No se pudo cargar el visor 3D. Revisá tu conexión y recargá la página.'; return; }
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* cada pieza recuerda en qué paso se agrega */
+let CUR = -1;
+const ST = n => { CUR = n; };
+const _add = THREE.Object3D.prototype.add;
+THREE.Object3D.prototype.add = function(...objs){
+  if (CUR >= 0) objs.forEach(o => { if (o && o.userData && o.userData.step === undefined) o.userData.step = CUR; });
+  return _add.apply(this, objs);
+};
+
+/* ---------- escena ---------- */
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+function applyBg(){ scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#dfe5e1'); }
+applyBg();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyBg);
+
+const camera = new THREE.PerspectiveCamera(36, 1, 1, 1200);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 8;
+controls.maxDistance = 260;
+controls.maxPolarAngle = Math.PI * 0.49;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x40524b, 0.8));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(45, 85, 60);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-55, right:55, top:65, bottom:-45, near:10, far:260});
+sun.shadow.bias = -0.0006;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.35);
+fill.position.set(-60, 35, -45);
+scene.add(fill);
+
+/* ---------- utilidades (1 unidad = 1 cm) ----------
+   x: 0..45 de izquierda a derecha de la base
+   h: altura sobre la base
+   d: 0 (frente) .. 30 (atrás) */
+const X = x => x - 22.5, Z = d => 15 - d;
+const std = (c, r, m) => new THREE.MeshStandardMaterial({color:c, roughness:r, metalness:m || 0});
+const M = {
+  foam: std(0xf4f4f0, .92), foam2: std(0xe9e9e4, .92),
+  rod: std(0x7d848b, .32, .9), steel: std(0xbfc4c9, .3, .9), copper: std(0xc4722c, .32, .85),
+  alu: std(0xd3d7db, .28, .85), belt: std(0x202023, .85), motor: std(0xb3bbc2, .38, .75),
+  motorCap: std(0x2e63c8, .55), pcbBlue: std(0x1a5ea8, .55), pcbGreen: std(0x1f6a3b, .6),
+  black: std(0x1c1c1e, .55), white: std(0xf7f7f4, .7), cabin: std(0xfccf9c, .85), cabinIn: std(0xfff0dd, .9),
+  clip: std(0x141416, .35, .6), silicone: new THREE.MeshStandardMaterial({color:0xffffff, roughness:.2, transparent:true, opacity:.55}),
+  btnBody: std(0x2a2a2d, .5), term: std(0x2f8a4e, .6), cream: std(0xfff7e8, .8), marker: std(0x222222, .8), red: std(0xd33a2c, .5)
+};
+const shadow = m => { m.castShadow = true; m.receiveShadow = true; return m; };
+function box(x1, x2, h1, h2, d1, d2, mat, info, parent){
+  const m = shadow(new THREE.Mesh(new THREE.BoxGeometry(x2 - x1, h2 - h1, d2 - d1), mat));
+  m.position.set(X((x1 + x2) / 2), (h1 + h2) / 2, Z((d1 + d2) / 2));
+  if (info) m.userData.info = info;
+  (parent || scene).add(m); return m;
+}
+function cylY(x, d, h1, h2, r, mat, info, parent, seg){
+  const m = shadow(new THREE.Mesh(new THREE.CylinderGeometry(r, r, h2 - h1, seg || 24), mat));
+  m.position.set(X(x), (h1 + h2) / 2, Z(d));
+  if (info) m.userData.info = info;
+  (parent || scene).add(m); return m;
+}
+function cylZ(x, h, d1, d2, r, mat, info, parent, seg){
+  const g = new THREE.CylinderGeometry(r, r, d2 - d1, seg || 28); g.rotateX(Math.PI / 2);
+  const m = shadow(new THREE.Mesh(g, mat));
+  m.position.set(X(x), h, Z((d1 + d2) / 2));
+  if (info) m.userData.info = info;
+  (parent || scene).add(m); return m;
+}
+function canvasTex(w, h, draw){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  t.userData = {canvas:c, ctx:g};
+  return t;
+}
+const FONT = "'Bricolage Grotesque', system-ui, sans-serif";
+
+function pbTex(wcm, hcm, o){
+  o = o || {};
+  const k = 48;
+  return canvasTex(Math.round(wcm * k), Math.round(hcm * k), (g, w, h) => {
+    g.fillStyle = '#f8f8f5'; g.fillRect(0, 0, w, h);
+    const p = 0.254 * k;
+    g.fillStyle = '#e2e2dc'; g.fillRect(0, h / 2 - .12 * k, w, .24 * k);
+    g.fillStyle = '#4a4a4a';
+    const hole = (x, y) => g.fillRect(x - 1.7, y - 1.7, 3.4, 3.4);
+    const cols = Math.floor((w - .3 * k) / p);
+    const x0 = (w - cols * p) / 2 + p / 2;
+    for (let i = 0; i < cols; i++) for (let r = 0; r < 5; r++) {
+      hole(x0 + i * p, h / 2 - .3 * k - r * p); hole(x0 + i * p, h / 2 + .3 * k + r * p);
+    }
+    if (o.rails) {
+      [[.18, '#d33a2c'], [h / k - .18, '#2563eb']].forEach(([yc, col]) => {
+        const y = yc * k;
+        g.fillStyle = col; g.fillRect(.2 * k, y - (yc < 1 ? -.02 : .02) * k - 1, w - .4 * k, 2);
+      });
+      g.fillStyle = '#4a4a4a';
+      for (let i = 0; i < cols; i += 1) { if (i % 6 === 5) continue; hole(x0 + i * p, .4 * k); hole(x0 + i * p, .4 * k + p); hole(x0 + i * p, h - .4 * k); hole(x0 + i * p, h - .4 * k - p); }
+    }
+    if (o.draw) o.draw(g, k, w, h);
+  });
+}
+
+/* ---------- la maqueta ---------- */
+const I = (t, d) => ({t, d});
+const INFO = {
+  base: I('Base A', 'Dos piezas de 45 × 30 cm pegadas una encima de otra: queda de 1 cm de grueso.'),
+  B: I('Panel trasero B', '20 × 48 cm. La línea del centro guía el motor, las dos poleas y la faja.'),
+  C: I('Lateral C', '10 × 48 cm. En el derecho van por fuera los botones de pasillo y las etiquetas de piso.'),
+  D: I('Techo D', '20.5 × 10.5 cm. Las dos varillas lo atraviesan.'),
+  E: I('Tablero E', '20 × 10 cm, parado en la esquina de adelante. Tiene la ventana del LCD y los botones de cabina.'),
+  F: I('Escuadra F', 'Triángulo de 8 × 8 cm que sostiene el tablero por detrás.'),
+  rod: I('Varilla de hierro liso 1/4"', 'Tramo de 50 cm, lijado con grano 400. Es el riel: la cabina desliza por ella.'),
+  guide: I('Guía de cobre 3/8"', 'Pedazo de 3 cm pegado al costado de la cabina. La varilla pasa por dentro.'),
+  cabin: I('Cabina (G, H, I)', 'Cajita de 10 × 7 × 6 cm con el frente abierto.'),
+  J: I('Pestaña J', '2 × 3.5 cm, pegada atrás de la cabina. Aquí se engancha la faja.'),
+  clip: I('Clip binder de 19 mm', 'Aprieta el lado derecho de la faja contra la pestaña J. Así la faja arrastra la cabina.'),
+  belt: I('Faja GT2 de 852 mm', 'Lazo cerrado de 6 mm de ancho. Solo el lado derecho va enganchado a la cabina.'),
+  pulleyTop: I('Polea GT2 de 30 dientes (arriba)', 'Fija al eje del motor con sus dos tornillitos, a 1 mm del motor.'),
+  pulleyBot: I('Polea GT2 de 30 dientes (abajo)', 'Sin tornillitos: gira libre sobre el tornillo M5 con una gota de aceite.'),
+  bolt: I('Tornillo M5 con 3 tuercas', 'La tuerca 2 ajusta la distancia para que las dos poleas queden en el mismo plano.'),
+  K: I('Cuadritos K', '3 × 3 cm. Refuerzan el cartón donde entra el tornillo.'),
+  motor: I('Motor 28BYJ-48 de 5 V', 'Eje a 44 cm de la base, sobre la línea del centro de B.'),
+  L: I('Repisa L (6 × 2 cm)', 'El motor se sienta sobre ella. Si sobresale más de 2 cm de B, roza la faja.'),
+  driver: I('Driver ULN2003', 'Pegado atrás de B por las esquinas. Se alimenta con la fuente de 5 V, nunca con la de 9 V.'),
+  lowSw: I('Final de carrera de abajo', 'Torrecita de 8 cuadritos K con un botón. El tacón de la cabina lo aprieta en el piso 1 (pin 35).'),
+  topSw: I('Final de carrera de arriba', 'Cuelga del techo con 2 cuadritos K. El tacón de arriba lo aprieta en el piso 4 (pin 36).'),
+  label: I('Etiqueta de piso M', '4 × 2.5 cm, pegada sobre la línea de marcador de cada piso.'),
+  lcd: I('LCD 16x2 con módulo I2C', 'Pines 20 (SDA) y 21 (SCL). Muestra piso, dirección, modo y pisos recorridos.'),
+  pbCab: I('Protoboard de los botones de cabina', 'Destinos 1 a 4 (pines 30 a 33) y MODO (pin 34).'),
+  mega: I('Arduino Mega 2560', 'Se alimenta por USB o con el adaptador Elegoo de 9 V en su jack.'),
+  pbMain: I('Protoboard principal', 'La fila azul es la tierra común (GND) de los 13 botones.'),
+  psu: I('Fuente de 5 V 2 A con bornera', 'Alimenta solo al driver del motor. Su negativo va también a la fila GND.'),
+  adapter: I('Adaptador Elegoo de 9 V', 'Va solo al jack del Mega. Nunca al driver del motor.'),
+  tacon: I('Tacón de 1 × 1 × 2 cm', 'Bloquecito de cartón pluma pegado a la cabina sobre el botón. Aprieta el botón y deja libres los cables.'),
+  wire: I('Jumper', 'Todos los botones van con la señal y el GND en diagonal.')
+};
+
+function build(){
+  ST(0);
+  const matTex = canvasTex(1080, 780, (g, w, h) => {
+    const k = 12;
+    g.fillStyle = '#2d5b4d'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i <= 90; i++) { g.strokeStyle = i % 10 === 0 ? 'rgba(255,255,255,.34)' : i % 5 === 0 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.07)'; g.lineWidth = i % 10 === 0 ? 2 : 1; g.beginPath(); g.moveTo(i * k + .5, 0); g.lineTo(i * k + .5, h); g.stroke(); }
+    for (let j = 0; j <= 65; j++) { g.strokeStyle = j % 10 === 0 ? 'rgba(255,255,255,.34)' : j % 5 === 0 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.07)'; g.lineWidth = j % 10 === 0 ? 2 : 1; g.beginPath(); g.moveTo(0, j * k + .5); g.lineTo(w, j * k + .5); g.stroke(); }
+    g.strokeStyle = 'rgba(255,214,102,.28)'; g.lineWidth = 1.5;
+    for (let a = -h; a < w; a += 240) { g.beginPath(); g.moveTo(a, h); g.lineTo(a + h, 0); g.stroke(); }
+  });
+  const matSide = std(0x24493e, .9);
+  const mat = new THREE.Mesh(new THREE.BoxGeometry(90, .3, 65), [matSide, matSide, new THREE.MeshStandardMaterial({map:matTex, roughness:.95}), matSide, matSide, matSide]);
+  mat.position.set(0, -1.15, 1); mat.receiveShadow = true; scene.add(mat);
+
+  ST(2);
+  box(0, 45, -1, -.5, 0, 30, M.foam2, INFO.base);
+  box(0, 45, -.5, 0, 0, 30, M.foam, INFO.base);
+  { const pen = std(0x7d848b, .9); box(23, 43, 0, .02, 9.42, 9.58, pen); box(23, 43, 0, .02, 19.92, 20.08, pen); box(22.92, 23.08, 0, .02, 9.5, 20, pen); box(42.92, 43.08, 0, .02, 9.5, 20, pen); }
+
+  ST(3);
+  box(23, 43, 0, 48, 19.5, 20, M.foam, INFO.B);
+  box(23, 23.5, 0, 48, 9.5, 19.5, M.foam, INFO.C);
+  box(42.5, 43, 0, 48, 9.5, 19.5, M.foam, INFO.C);
+  ST(6); box(22.75, 43.25, 48, 48.5, 9.5, 20, M.foam, INFO.D); ST(3);
+  // línea del centro a lápiz
+  box(32.97, 33.03, 1, 47.5, 19.49, 19.5, std(0x9aa0a6, .9), INFO.B);
+
+  ST(5);
+  [27.3, 38.7].forEach(x => cylY(x, 12.2, -.6, 49.2, .3175, M.rod, INFO.rod));
+
+  ST(4);
+  box(30, 36, 41.3, 41.8, 17.5, 19.5, M.foam2, INFO.L);
+  cylZ(33, 43.2, 17.6, 19.2, 1.4, M.motor, INFO.motor, null, 40);
+  cylZ(33, 43.2, 19.2, 19.5, 1.42, M.motorCap, INFO.motor, null, 40);
+  box(29.8, 36.2, 42.85, 43.55, 17.55, 17.65, M.motor, INFO.motor);
+  cylZ(33, 44, 17.3, 17.6, .45, M.motor, INFO.motor);
+  cylZ(33, 44, 16, 17.3, .25, std(0xc9a44a, .35, .8), INFO.motor);
+
+  const pulleyTop = makePulley(44, true, INFO.pulleyTop);
+  ST(7); const pulleyBot = makePulley(4.4, false, INFO.pulleyBot);
+
+  // tornillo de abajo
+  cylZ(33, 4.4, 15.55, 20.6, .25, M.steel, INFO.bolt);
+  hexNut(20.6, 20.95, .48, INFO.bolt); hexNut(18.5, 18.9, .45, INFO.bolt); hexNut(17.55, 17.95, .45, INFO.bolt); hexNut(15.6, 16.0, .45, INFO.bolt);
+  cylZ(33, 4.4, 18.9, 19.0, .55, M.steel, INFO.bolt); cylZ(33, 4.4, 20.5, 20.6, .55, M.steel, INFO.bolt);
+  box(31.5, 34.5, 2.9, 5.9, 19, 19.5, M.foam2, INFO.K);
+  box(31.5, 34.5, 2.9, 5.9, 20, 20.5, M.foam2, INFO.K);
+
+  // faja
+  const beltTex = () => { const t = canvasTex(16, 32, (g) => { g.fillStyle = '#232326'; g.fillRect(0, 0, 16, 32); g.fillStyle = '#3d3d42'; g.fillRect(0, 0, 16, 7); }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 39.6 / 0.2); return t; };
+  const texL = beltTex(), texR = beltTex();
+  const strand = (x, tex) => box(x - .075, x + .075, 4.4, 44, 16.2, 16.8, new THREE.MeshStandardMaterial({map:tex, roughness:.85}), INFO.belt);
+  strand(32.045, texL); strand(33.955, texR);
+  [[44, Math.PI / 2], [4.4, -Math.PI / 2]].forEach(([h, t0]) => {
+    const g = new THREE.CylinderGeometry(1.03, 1.03, .6, 32, 1, true, t0, Math.PI); g.rotateX(Math.PI / 2);
+    const m = shadow(new THREE.Mesh(g, new THREE.MeshStandardMaterial({color:0x202023, roughness:.85, side:THREE.DoubleSide})));
+    m.position.set(X(33), h, Z(16.5)); m.userData.info = INFO.belt; scene.add(m);
+  });
+
+  ST(5);
+  const cabinG = new THREE.Group(); scene.add(cabinG);
+  const C0 = 7.6;
+  box(28, 38, C0, C0 + .5, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(28, 38, C0 + 5.5, C0 + 6, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(28, 28.5, C0 + .5, C0 + 5.5, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(37.5, 38, C0 + .5, C0 + 5.5, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(28.5, 37.5, C0 + .5, C0 + 5.5, 15.2, 15.7, M.cabinIn, INFO.cabin, cabinG);
+  box(28.5, 37.5, C0 + .5, C0 + .52, 8.7, 15.2, M.cabinIn, INFO.cabin, cabinG);
+  [27.3, 38.7].forEach(x => {
+    cylY(x, 12.2, C0, C0 + 2.97, .476, M.copper, INFO.guide, cabinG);
+    cylY(x, 12.2, C0 + 3.03, C0 + 6, .476, M.copper, INFO.guide, cabinG);
+    const sx = x < 30 ? [27.72, 28] : [38, 38.28];
+    box(sx[0], sx[1], C0 + .3, C0 + 5.7, 11.9, 12.5, M.silicone, INFO.guide, cabinG);
+  });
+  box(34.25, 34.75, C0 + 1.25, C0 + 4.75, 15.7, 17.7, M.cabin, INFO.J, cabinG);
+  ST(14); box(33.73, 33.83, C0 + 2, C0 + 4, 16.05, 17.9, M.clip, INFO.clip, cabinG);
+  box(34.77, 34.87, C0 + 2, C0 + 4, 16.05, 17.9, M.clip, INFO.clip, cabinG);
+  box(33.73, 34.87, C0 + 2, C0 + 4, 17.9, 18.0, M.clip, INFO.clip, cabinG);
+
+  ST(8);
+  for (let i = 0; i < 8; i++) box(35, 38, i * .5, i * .5 + .5, 9.75, 12.75, i % 2 ? M.foam : M.foam2, INFO.lowSw);
+  const pbMini = () => new THREE.MeshStandardMaterial({map:pbTex(3.4, 3.5), roughness:.7});
+  const lowPb = box(34.8, 38.2, 4, 4.85, 9.5, 13, [M.white, M.white, pbMini(), M.white, M.white, M.white], INFO.lowSw);
+  lowPb.material = [M.white, M.white, pbMini(), M.white, M.white, M.white];
+  ST(11); for (let i = 0; i < 2; i++) box(35, 38, 47 + i * .5, 47.5 + i * .5, 9.75, 12.75, i % 2 ? M.foam : M.foam2, INFO.topSw);
+  const topPb = box(34.8, 38.2, 46.15, 47, 9.5, 13, M.white, INFO.topSw);
+  topPb.material = [M.white, M.white, M.white, pbMini(), M.white, M.white];
+  ST(8); const swLow = makeButton(new THREE.Vector3(X(36.5), 4.85, Z(11.25)), 'y', 0xdddddd, {info:INFO.lowSw});
+  ST(11); const swTop = makeButton(new THREE.Vector3(X(36.5), 46.15, Z(11.25)), '-y', 0xdddddd, {info:INFO.topSw});
+
+  ST(8); box(36, 37, C0 - 2, C0, 10.75, 11.75, M.foam2, INFO.tacon, cabinG);
+  ST(11); box(36, 37, C0 + 6, C0 + 8, 10.75, 11.75, M.foam2, INFO.tacon, cabinG);
+  ST(12);
+  const hall = {up:[], dn:[]};
+  const PIN = {up:{1:22, 2:23, 3:25}, dn:{2:24, 3:26, 4:27}};
+  for (let n = 1; n <= 4; n++) {
+    const fy = 7.6 + 10 * (n - 1);
+    box(43, 43.04, fy - .05, fy + .05, 9.5, 19.5, M.marker, INFO.label);
+    const lt = canvasTex(400, 250, (g, w, h) => {
+      g.fillStyle = '#fffdf7'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#1b1b1b'; g.font = `800 120px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('PISO ' + n, w / 2, h / 2 + 6);
+    });
+    const lab = new THREE.Mesh(new THREE.PlaneGeometry(4, 2.5), new THREE.MeshStandardMaterial({map:lt, roughness:.8}));
+    lab.rotation.y = Math.PI / 2; lab.position.set(X(43.06), fy + 1.65, Z(11.9)); lab.userData.info = INFO.label; lab.receiveShadow = true; scene.add(lab);
+    const pb = box(43.06, 43.9, fy + .4, fy + 3.9, 14.4, 19, M.white, I('Botones de pasillo del piso ' + n, 'Mini protoboard pegada por fuera del lateral derecho, justo arriba de la línea del piso.'));
+    pb.material = [new THREE.MeshStandardMaterial({map:pbTex(4.6, 3.5), roughness:.7}), M.white, M.white, M.white, M.white, M.white];
+    const slots = n === 1 ? [['up', 16.7]] : n === 4 ? [['dn', 16.7]] : [['up', 15.6], ['dn', 17.8]];
+    slots.forEach(([type, d]) => {
+      const info = I(`Piso ${n}, ${type === 'up' ? 'subir' : 'bajar'}`, `Pin ${PIN[type][n]} del Mega. Llama al ascensor desde ese piso.`);
+      hall[type][n] = makeButton(new THREE.Vector3(X(43.9), fy + 2.15, Z(d)), 'x', type === 'up' ? 0x1f9d55 : 0xd42f2f, {press:{type, f:n}, info});
+      arrow(43.92, fy + 3.45, d, type === 'up');
+    });
+  }
+
+  ST(9);
+  const shp = new THREE.Shape(); shp.moveTo(0, 0); shp.lineTo(20, 0); shp.lineTo(20, 10); shp.lineTo(0, 10); shp.lineTo(0, 0);
+  const holeP = new THREE.Path(); holeP.moveTo(6.4, 5.9); holeP.lineTo(13.6, 5.9); holeP.lineTo(13.6, 8.5); holeP.lineTo(6.4, 8.5); holeP.lineTo(6.4, 5.9); shp.holes.push(holeP);
+  const eMesh = shadow(new THREE.Mesh(new THREE.ExtrudeGeometry(shp, {depth:.5, bevelEnabled:false}), M.foam));
+  eMesh.position.set(X(1), 0, Z(1.5)); eMesh.userData.info = INFO.E; scene.add(eMesh);
+  const tri = new THREE.Shape(); tri.moveTo(0, 0); tri.lineTo(8, 0); tri.lineTo(0, 8); tri.lineTo(0, 0);
+  [3.75, 17.75].forEach(x => { const m = shadow(new THREE.Mesh(new THREE.ExtrudeGeometry(tri, {depth:.5, bevelEnabled:false}), M.foam2)); m.rotation.y = Math.PI / 2; m.position.set(X(x), 0, Z(1.5)); m.userData.info = INFO.F; scene.add(m); });
+  box(6.6, 15.4, 5.4, 9.0, 1.5, 1.66, M.pcbGreen, INFO.lcd);
+  box(7.1, 14.9, 5.65, 8.75, 1.28, 1.5, M.black, INFO.lcd);
+  box(7.4, 12.4, 5.8, 7.6, 1.66, 2.2, M.black, INFO.lcd);
+  const lcdTex = canvasTex(720, 260, () => {});
+  const lcd = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 2.6), new THREE.MeshBasicMaterial({map:lcdTex, toneMapped:false}));
+  lcd.position.set(X(10.99), 7.2, Z(1.27)); lcd.userData.info = INFO.lcd; scene.add(lcd);
+
+  const pbCabTex = pbTex(8.3, 5.3, {rails:true, draw:(g, k, w, h) => {
+    g.font = `800 ${Math.round(.62 * k)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const lab = [['1', 1.0], ['2', 2.6], ['3', 4.2], ['4', 5.8], ['MODO', 7.5]];
+    lab.forEach(([t, cx]) => { g.lineWidth = 8; g.strokeStyle = '#f8f8f5'; g.strokeText(t, cx * k, h - 1.25 * k); g.fillStyle = '#1b2a6b'; g.fillText(t, cx * k, h - 1.25 * k); });
+  }});
+  const pbCab = box(6.85, 15.15, .3, 5.6, .6, 1, M.white, INFO.pbCab);
+  pbCab.material = [M.white, M.white, M.white, M.white, new THREE.MeshStandardMaterial({map:pbCabTex, roughness:.7}), M.white];
+  const cabBtn = [];
+  for (let n = 1; n <= 4; n++) cabBtn[n] = makeButton(new THREE.Vector3(X(6.85 + 1.0 + (n - 1) * 1.6), 2.95, Z(.6)), 'z', 0x2563eb, {press:{type:'cab', f:n}, info:I('Destino piso ' + n, `Botón de cabina, pin ${29 + n}. Manda la cabina al piso ${n}.`)});
+  const modeBtn = makeButton(new THREE.Vector3(X(6.85 + 7.5), 2.95, Z(.6)), 'z', 0xea580c, {press:{mode:true}, info:I('Botón MODO', 'Pin 34. Alterna entre FCFS y LOOK y reinicia el contador.')});
+
+  ST(10);
+  box(2, 12.2, .35, .5, 22, 27.3, M.pcbBlue, INFO.mega);
+  [[2.4, 22.4], [11.8, 22.4], [2.4, 26.9], [11.8, 26.9]].forEach(([x, d]) => cylY(x, d, 0, .35, .25, M.silicone, INFO.mega));
+  box(4, 11.8, .5, 1.35, 22.08, 22.33, M.black, INFO.mega);
+  box(4, 11.8, .5, 1.35, 26.97, 27.22, M.black, INFO.mega);
+  box(11.3, 11.8, .5, 1.35, 22.8, 26.6, M.black, INFO.mega);
+  box(1.4, 3.0, .5, 1.6, 22.7, 23.9, M.steel, INFO.mega);
+  box(1.3, 3.0, .5, 1.6, 25.7, 26.7, M.black, INFO.mega);
+  box(6.9, 8.3, .5, .65, 24, 25.4, M.black, INFO.mega);
+  const pbMain = box(13.5, 21.8, 0, .9, 22, 27.5, M.white, INFO.pbMain);
+  pbMain.material = [M.white, M.white, new THREE.MeshStandardMaterial({map:pbTex(8.3, 5.5, {rails:true}), roughness:.7}), M.white, M.white, M.white];
+  box(39.5, 41.8, 0, 1.1, 23.4, 25, M.term, INFO.psu);
+  box(39.2, 40, .2, .9, 23.8, 24.6, M.black, INFO.psu);
+
+  ST(4);
+  box(30.4, 34, 37.5, 41, 20, 20.15, M.pcbGreen, INFO.driver);
+  box(31.2, 32.6, 38.6, 40.3, 20.15, 20.42, M.black, INFO.driver);
+  box(32.9, 33.8, 39.4, 40.8, 20.15, 20.75, M.white, INFO.driver);
+  [37.9, 38.3, 38.7, 39.1].forEach(h => cylZ(33.4, h, 20.15, 20.35, .13, M.red, INFO.driver, null, 10));
+
+  ST(13);
+  const W = (pts, col, r) => {
+    const curve = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(X(p[0]), p[1], Z(p[2]))));
+    const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 80, r || .07, 6, false), std(col, .55));
+    m.castShadow = true; m.userData.info = INFO.wire; scene.add(m);
+  };
+  const cols = [0xe0a100, 0x2a7de1, 0x9b4dd1, 0x16a36a];
+  for (let n = 1; n <= 4; n++) {
+    const fy = 7.6 + 10 * (n - 1), o = n * .12;
+    W([[43.9, fy + 1.2, 18.9], [44.35 + o, fy, 19.4], [44.4 + o, 1.2, 19.6], [44.1 + o, .35, 21.2], [34, .35, 22.3 + o], [21.4, .95, 23.3 + o]], cols[n - 1]);
+    W([[43.9, fy + 1.0, 18.7], [44.25 + o, fy - .4, 19.2], [44.3 + o, 1.1, 19.5], [44 + o, .3, 21.4], [34, .3, 22.6 + o], [21.4, .95, 26.9 - o]], 0x222222);
+  }
+  [[8.1, 0xe0a100], [9.7, 0x2a7de1], [11.3, 0x9b4dd1], [12.9, 0x16a36a], [14.5, 0xea580c]].forEach(([x, c], i) => {
+    W([[x, 2.9, 1.6], [x, .8, 2.4], [x - 1 - i * .3, .3, 6], [6 + i * .7, .3, 18], [4.5 + i * .9, 1.35, 22.2]], c);
+  });
+  [[7.6, 0xd33a2c], [8.0, 0x222222], [8.4, 0x2a7de1], [8.8, 0x16a36a]].forEach(([x, c], i) => {
+    W([[x, 6.6, 2.2], [x + .3, 3, 3.6], [x + 1, .35, 8], [12.6, .35, 18], [11.55, 1.35, 22.9 + i * .3]], c, .06);
+  });
+  [0xe0a100, 0xd33a2c, 0x16a36a, 0x2a7de1].forEach((c, i) => {
+    W([[31 + i * .5, 38, 20.3], [30.6 + i * .3, 30, 20.6], [29.8 + i * .3, 1.2, 20.7], [26, .35, 23.5], [11.55, 1.35, 23.9 + i * .3]], c, .06);
+  });
+  W([[33.3, 38.3, 20.3], [36, 25, 20.6], [38.5, 1, 21.5], [40.2, 1.05, 23.6]], 0xd33a2c, .06);
+  W([[33.1, 38.3, 20.3], [35.7, 25, 20.7], [38.2, 1, 21.8], [40.8, 1.05, 23.6]], 0x222222, .06);
+  ST(4); W([[35.6, 42.6, 18.4], [36.4, 42.4, 19.3], [35.8, 41.6, 20.3], [33.3, 40.6, 20.8]], 0x2a7de1, .09);
+  ST(14);
+  W([[39.2, .55, 24.2], [37.5, .2, 27], [36, -1, 33], [30, -1, 40]], 0x151515, .16);
+  W([[1.3, 1.05, 26.2], [-.3, .9, 26.5], [-2, -.1, 27], [-8, -1, 30]], 0xf2f2f2, .16);
+  const adapter = box(-12, -8, -1, 1.2, 28.5, 32, M.white, INFO.adapter);
+  adapter.rotation.y = .5;
+
+  return {cabinG, pulleyTop, pulleyBot, texL, texR, lcdTex, hall, cabBtn, modeBtn, swLow, swTop};
+}
+
+function makePulley(h, hubToMotor, info){
+  const g = new THREE.Group();
+  const add = (geo, mat) => { geo.rotateX(Math.PI / 2); const m = shadow(new THREE.Mesh(geo, mat)); m.userData.info = info; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(.95, .95, .7, 30), M.alu);
+  const f1 = add(new THREE.CylinderGeometry(1.18, 1.18, .07, 36), M.alu); f1.position.z = .385;
+  const f2 = add(new THREE.CylinderGeometry(1.18, 1.18, .07, 36), M.alu); f2.position.z = -.385;
+  const hub = add(new THREE.CylinderGeometry(.62, .62, .7, 28), M.alu); hub.position.z = -.77;
+  const scr = new THREE.Mesh(new THREE.BoxGeometry(.22, .25, .22), M.black); scr.position.set(0, .6, -.77); g.add(scr);
+  const bore = new THREE.Mesh(new THREE.CircleGeometry(.26, 16), M.black); bore.position.z = .43; g.add(bore);
+  g.position.set(X(33), h, Z(16.5));
+  scene.add(g); return g;
+}
+function hexNut(d1, d2, r, info){ cylZ(33, 4.4, d1, d2, r, M.steel, info, null, 6); }
+function makeButton(pos, face, color, data){
+  const g = new THREE.Group();
+  const body = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, .36), M.btnBody)); body.position.z = .18;
+  const capMat = new THREE.MeshStandardMaterial({color, roughness:.45, emissive:color, emissiveIntensity:0});
+  const cg = new THREE.CylinderGeometry(.47, .47, .34, 24); cg.rotateX(Math.PI / 2);
+  const cap = shadow(new THREE.Mesh(cg, capMat)); cap.position.z = .53;
+  body.userData = data; cap.userData = data;
+  g.add(body, cap);
+  if (face === 'x') g.rotation.y = Math.PI / 2;
+  if (face === 'y') g.rotation.x = -Math.PI / 2;
+  if (face === '-y') g.rotation.x = Math.PI / 2;
+  g.position.copy(pos); scene.add(g);
+  return {g, cap, capMat, t:0};
+}
+function arrow(x, h, d, up){
+  const s = new THREE.Shape(); const k = .38;
+  if (up) { s.moveTo(-k, -k * .6); s.lineTo(k, -k * .6); s.lineTo(0, k * .7); } else { s.moveTo(-k, k * .6); s.lineTo(k, k * .6); s.lineTo(0, -k * .7); }
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(s), new THREE.MeshBasicMaterial({color:up ? 0x1f9d55 : 0xd42f2f}));
+  m.rotation.y = Math.PI / 2; m.position.set(X(x), h, Z(d)); scene.add(m);
+}
+
+/* ---------- pasos ---------- */
+const STEPS = [
+  {t:'Así queda terminado', p:'Vista previa', z:1.05, cab:10, cam:[[58,46,80],[3,21,0]],
+   do:['Esta es la maqueta completa. Mide 45 cm de ancho, 30 cm de fondo y unos 50 cm de alto.',
+       'La cabina sube y baja deslizándose por dos varillas de hierro. Arriba hay un motor que mueve una faja de hule con dientes (como la de una impresora), y esa faja arrastra la cabina.',
+       'Tocá <b>Empezar</b>. En cada paso aparecen en naranja las piezas nuevas, con su nombre señalado en la maqueta.',
+       'Si una palabra no se entiende, abrí <b>¿Qué significa?</b> al final de cada paso.'],
+   pc:[], lab:[]},
+
+  {t:'Cortar las piezas', p:'Parte 1 del manual', img:true, z:1.3, cab:10, cam:[[34,44,56],[0,0,3]],
+   do:['Todas las piezas de cartón salen de 2 pliegos de cartón pluma de 5 mm (70 × 50 cm). La forma de acomodarlas está en la plantilla de cortes del manual (Parte 1).',
+       'Dibujá cada pieza con lápiz y regla. Escribí en el centro de cada una su letra (A, B, C…): así sabés cuál es cuál.',
+       'Cortá encima de un cartón viejo, nunca sobre la mesa. Regla metálica firme y 3 o 4 pasadas suaves del cutter. Si cortás de un solo jalón, el borde queda feo.',
+       'Cuando el cutter empiece a arrancar la espuma en vez de cortarla, quebrá la punta gastada de la navaja.'],
+   table:[['A','Base','45 × 30','2'],['B','Pared trasera de la torre','20 × 48','1'],['C','Paredes de los lados','10 × 48','2'],
+          ['D','Techo de la torre','20.5 × 10.5','1'],['E','Tablero (pantalla y botones)','20 × 10','1'],['F','Escuadras: un cuadrado de 8 × 8 cortado en diagonal','8 × 8','1'],
+          ['G','Piso y techo de la cabina','10 × 7','2'],['H','Pared de atrás de la cabina','9 × 5','1'],['I','Paredes de los lados de la cabina','7 × 5','2'],
+          ['J','Pestaña para enganchar la faja','2 × 3.5','1'],['K','Cuadritos para apilar','3 × 3','14'],['L','Repisa del motor','6 × 2','1'],
+          ['M','Etiquetas de piso','4 × 2.5','4'],['N','Tira para el calibre','15 × 5','1'],['—','Tiras para los tacones','1 × 2','4']],
+   warn:'<b>Cambios al manual:</b> los cuadritos K ahora son 14 (8 para abajo, 2 para arriba, 2 de refuerzo y 2 de repuesto). La repisa L es de 6 × 2 cm. Y hay que cortar 4 tiras de 1 × 2 cm para los tacones.',
+   pc:[], lab:[]},
+
+  {t:'La base', p:'Parte 2 del manual', z:1.3, cab:10, cam:[[34,44,56],[0,0,3]],
+   do:['Poné una pieza A (45 × 30 cm) sobre la mesa. Hacé líneas de silicón en zigzag por toda la superficie, rápido para que no se enfríe.',
+       'Poné la otra pieza A encima, bien alineada, y libros encima durante 5 minutos. Queda una base de 1 cm de grueso.',
+       'Ahora marcá dónde va la torre. Ubicá la esquina de <b>atrás a la derecha</b> de la base. Desde ahí medí <b>2 cm hacia la izquierda</b> y <b>10 cm hacia adelante</b>. Ese punto es una esquina de la torre.',
+       'Desde ese punto dibujá un rectángulo de <b>20 cm hacia la izquierda</b> y <b>10.5 cm hacia adelante</b> (son las líneas grises de la maqueta). Ahí se para la torre.'],
+   pc:['Base A × 2 (45 × 30 cm)'],
+   lab:[{t:'Base: 2 piezas A pegadas', p:[10,0,8]},{t:'Rectángulo de la torre', p:[33,0,9.5]}]},
+
+  {t:'Las paredes de la torre', p:'Parte 2 del manual', cab:10, cam:[[44,50,66],[9,22,0]],
+   do:['La torre tiene tres paredes: una atrás (pieza B) y una a cada lado (piezas C). Vista desde arriba parece una letra U, abierta hacia el frente.',
+       'En la pared de atrás B dibujá con lápiz una línea vertical justo a la mitad: a 10 cm de cada orilla. Es la línea más importante: sobre ella van el motor, las poleas y la faja.',
+       'Pegá la pared B parada sobre la línea de atrás del rectángulo, con la línea dibujada mirando hacia adelante. Apoyala contra un libro parado mientras se enfría para que quede derecha.',
+       'Pegá una pared C a cada lado de B: paradas sobre la base, pegadas a las orillas de B.',
+       'Pasá un cordón de silicón por dentro de cada esquina donde se juntan dos paredes. Eso es lo que la hace firme.'],
+   warn:'Todavía <b>no</b> pongás el techo. Primero tienen que entrar las varillas y la cabina.',
+   pc:['Pared trasera B (20 × 48 cm)','2 paredes C (10 × 48 cm)'],
+   lab:[{t:'Pared trasera (B)', p:[33,32,19.5]},{t:'Pared del lado (C)', p:[23,26,12]},{t:'Pared del lado (C)', p:[43,26,12]},{t:'Línea del centro', p:[33,16,19.4]}]},
+
+  {t:'El motor', p:'Parte 3 del manual', cab:10, cam:[[30,52,26],[10.5,41.5,-3]],
+   do:['Meté una polea (la rueda de aluminio con dientes) en el eje del motor. Debe quedar a 1 mm del motor, sin tocarlo.',
+       'La polea tiene dos tornillitos. Girala hasta que uno quede frente a la parte plana del eje y apretalo con la llave Allen. Después apretá el otro.',
+       'Sobre la línea del centro, medí <b>44 cm</b> desde la base hacia arriba. Ahí va el centro del eje del motor.',
+       'Justo debajo, pegá la repisa L (6 × 2 cm) acostada contra la pared, como un estante.',
+       'Pegá el motor sentado sobre la repisa: la tapa plana contra la pared y el eje (con la polea) apuntando hacia vos.',
+       'Al lado del motor, cortá en la pared un agujerito de 1.5 × 1 cm. Pasá por ahí el cable del motor hacia atrás.',
+       'Por detrás de la pared, a unos 40 cm de alto, pegá la plaquita verde del driver (silicón solo en sus 4 esquinas) y enchufale el cable del motor.',
+       'Medí con la regla desde la pared hasta la mitad de los dientes de la polea. Debe dar unos 3 cm. <b>Anotalo: es la medida X</b>, la vas a usar dos veces.'],
+   warn:'<b>Cambio al manual:</b> la repisa L es de 6 × 2 cm, no de 6 × 4. Si sobresale más, la faja la roza.',
+   pc:['Motor 28BYJ-48','Driver ULN2003 (plaquita verde)','Polea GT2','Repisa L (6 × 2 cm)'],
+   lab:[{t:'Motor', p:[38,43.4,18.5]},{t:'Polea de arriba', p:[33,45.4,16.4]},{t:'Repisa L', p:[29.5,41.6,18.5]},{t:'Driver (detrás de la pared)', p:[31.6,37.4,20.2]}]},
+
+  {t:'Las varillas y la cabina', p:'Partes 4 y 5 del manual', cab:10, cam:[[38,40,46],[10.5,24,1]],
+   do:['Las 2 varillas de hierro son los rieles. Lijalas con lija de agua hasta que queden lisas. Rodalas en el piso: si tambalean, están torcidas y hay que cambiarlas.',
+       'Armá la cabina como una cajita sin frente: una G de piso, una I parada a cada lado, la H parada atrás y la otra G de techo. Queda de 10 cm de ancho, 7 de fondo y 6 de alto.',
+       'A cada costado de la cabina van 2 pedacitos de tubo de cobre, uno arriba del otro, a <b>3.5 cm</b> de la pared de atrás. Por dentro de esos tubos pasa la varilla.',
+       'Truco para que queden rectos: meté los 2 tubos en una varilla, apoyala contra el costado de la cabina y pegá los tubos con la varilla adentro. Esperá 3 minutos y sacá la varilla. Que no caiga silicón dentro del tubo.',
+       'Atrás de la cabina, por fuera, pegá la pestaña J (2 × 3.5 cm) parada, a 1.5 cm a la derecha del centro. Ahí se va a enganchar la faja.',
+       'De la tira N cortá un pedazo de ancho igual a la medida X más 0.8 cm (si X dio 3 cm, cortá 3.8 cm). Ese pedazo es el <b>calibre</b>: un separador.',
+       'Pasá las varillas por los tubos y meté la cabina dentro de la torre. Poné el calibre parado entre la pared de atrás y la cabina, centrá la cabina y empujá cada varilla girándola hasta que se hunda 5 mm en la base.'],
+   pc:['2 varillas de hierro 1/4" (50 cm)','4 tubos de cobre 3/8" (3 cm)','Cabina: 2 G, 1 H, 2 I','Pestaña J','Calibre (de la tira N)'],
+   lab:[{t:'Varilla (riel)', p:[27.3,44,12.2]},{t:'Varilla (riel)', p:[38.7,34,12.2]},{t:'Cabina', p:[29,14,9], cab:1},{t:'Tubo de cobre', p:[26.8,9,12.2], cab:1},{t:'Pestaña J', p:[35.2,9.4,17.7], cab:1}]},
+
+  {t:'El techo', p:'Parte 5 del manual', cab:10, cam:[[40,64,50],[10.5,40,0]],
+   do:['El techo es la pieza D (20.5 × 10.5 cm). Va encima de las tres paredes.',
+       'Ponelo encima de la torre <b>sin pegar</b> y marcá con lápiz dónde tocan las puntas de las dos varillas.',
+       'Atravesá el techo en esas dos marcas con la punta de una varilla o de un lápiz.',
+       'Bajalo por las varillas hasta que apoye sobre las paredes y pegalo.',
+       'Subí y bajá la cabina con la mano 20 veces. Poné una gota de aceite en cada varilla y repetí.'],
+   warn:'Si la cabina se traba en algún punto, una varilla está chueca. Despegala, enderezala y volvé a pegar ahora; después cuesta mucho más.',
+   pc:['Techo D (20.5 × 10.5 cm)'],
+   lab:[{t:'Techo (D)', p:[30,48.5,11]}]},
+
+  {t:'La polea de abajo y la faja', p:'Parte 6 del manual', cab:10, cam:[[26,16,24],[10.5,6,-1]],
+   do:['La faja es un aro de hule con dientes. Colgala de la polea del motor con los dientes hacia adentro. Queda colgando entre la cabina y la pared de atrás.',
+       'El lado derecho de la faja debe pasar pegadito a la pestaña J de la cabina, por su izquierda.',
+       'Meté la segunda polea dentro del aro, abajo, y jalala suave hasta que la faja quede recta. Marcá en la pared el centro de la polea (queda a unos 4 cm de la base). Hacé la marca <b>2 mm más abajo</b>: así la faja queda tensa.',
+       'Pegá un cuadrito K (3 × 3 cm) sobre la marca, por delante de la pared, y otro por detrás. Así el tornillo no rompe el cartón.',
+       'Atravesá todo con el tornillo, metiéndolo desde atrás con una rondana (arandela). Por delante: otra rondana y la <b>tuerca 1</b>, bien apretada.',
+       'Enroscá la <b>tuerca 2</b> y girala hasta que la polea de abajo quede a la misma distancia de la pared que la de arriba (la medida X).',
+       'A esta polea quitale los dos tornillitos: tiene que girar libre. Poné una gota de aceite en el tornillo, metela con la faja alrededor y cerrá con la <b>tuerca 3</b>, dejando 1 mm de juego.'],
+   warn:'Apretá la faja a media altura con un dedo: tiene que ceder entre 3 y 5 mm. Muy floja, se salta los dientes; muy tensa, el motor sufre.',
+   pc:['Polea GT2','Faja GT2 de 852 mm','Tornillo M5 × 50 mm','3 tuercas y 2 rondanas','2 cuadritos K (3 × 3 cm)'],
+   lab:[{t:'Polea de abajo', p:[33,5.8,16]},{t:'Faja', p:[33.95,24,16.5]},{t:'Tornillo y tuercas', p:[33,3.6,17.2]},{t:'Cuadrito de refuerzo', p:[31.5,6,19.1]}]},
+
+  {t:'El botón de abajo (final de carrera)', p:'Parte 7 del manual', cab:0, cam:[[30,13,27],[13.5,5,3.5]],
+   do:['Un <b>final de carrera</b> es un botón que la cabina aprieta cuando llega abajo. Así el Arduino sabe dónde está el piso 1 cada vez que se enciende.',
+       'Pegá <b>8 cuadritos K</b> (3 × 3 cm) uno encima del otro. Queda una torrecita de 4 cm.',
+       'Poné un botón en una mini protoboard, cruzando la ranura del medio. Conectale sus dos cables <b>en diagonal</b> (dibujo del manual, Parte 7), saliendo hacia el frente.',
+       'Quitale el papel del adhesivo a la mini protoboard y pegala encima de la torrecita, con el botón hacia arriba.',
+       'Pegá la torrecita adentro de la torre, debajo de la cabina, un poco a la derecha y hacia el frente. No puede tocar las varillas ni la faja.',
+       'Hacé un <b>tacón</b>: pegá 2 tiras de 1 × 2 cm una sobre otra. Pegalo debajo del piso de la cabina, justo encima del botón.',
+       'Bajá la cabina con la mano: el tacón tiene que apretar el botón y hacer clic.'],
+   warn:'<b>Cambio al manual:</b> son 8 cuadritos, no 12. El tacón es el que aprieta el botón; así la cabina no choca con los cables.',
+   pc:['8 cuadritos K (3 × 3 cm)','Mini protoboard','1 botón 12 × 12 mm','Tacón (2 tiras de 1 × 2 cm)'],
+   lab:[{t:'Torrecita de 8 cuadritos', p:[38,2,10]},{t:'Botón', p:[34.9,5.2,10]},{t:'Tacón', p:[37.2,6.8,11.25], cab:1}]},
+
+  {t:'El tablero de control', p:'Parte 8 del manual', cab:10, cam:[[-6,16,40],[-11.5,5,13]],
+   do:['El tablero E (20 × 10 cm) va parado en la esquina de adelante a la izquierda de la base, a 1 cm de cada orilla.',
+       'Por detrás, pegá los dos triángulos F como escuadras para que no se vaya para atrás.',
+       'Cortá en el tablero una ventana de 7.2 × 2.6 cm, centrada y a 1.5 cm del borde de arriba. Pegá la pantalla por detrás, con el vidrio asomándose. Silicón solo en las orillas de la placa verde.',
+       'Pegá una protoboard debajo de la ventana (trae adhesivo atrás). Poné 5 botones cruzando la ranura del medio: 4 juntos a la izquierda (pisos 1, 2, 3 y 4) y uno separado a la derecha (MODO).',
+       'Escribí con marcador el número debajo de cada botón.'],
+   pc:['Tablero E (20 × 10 cm)','2 escuadras F','Pantalla LCD con I2C','Protoboard 830','5 botones'],
+   lab:[{t:'Tablero (E)', p:[2.5,9.6,1.5]},{t:'Pantalla', p:[11,8.9,1.2]},{t:'Botones 1, 2, 3 y 4', p:[10.2,1.9,0.4]},{t:'MODO', p:[14.35,4.2,0.4]},{t:'Escuadra (F)', p:[4,5.5,5]}]},
+
+  {t:'El Arduino', p:'Parte 9 del manual', z:2.1, cab:10, cam:[[-30,26,-30],[-9,1,-10]],
+   do:['Toda la electrónica va sobre la base, detrás de la torre.',
+       'Pegá el Arduino Mega a la izquierda, con cuatro puntitos de silicón debajo de sus esquinas y el conector USB hacia la orilla.',
+       'Pegá la protoboard principal a la derecha del Arduino, con su adhesivo.',
+       'Más a la derecha, detrás de la torre, pegá la bornera de la fuente de 5 V (la pieza verde con tornillitos donde se aprietan los cables). Si usan pilas, ahí va el porta pilas.',
+       'Con un cable, uní un pin GND del Arduino a la <b>fila azul</b> (−) de la protoboard. Esa fila es la tierra: todos los botones van a terminar ahí.'],
+   warn:'Si la línea azul de tu protoboard se corta a la mitad, la fila también está cortada. Uní las dos mitades con un cable corto.',
+   pc:['Arduino Mega 2560','Protoboard 830 (principal)','Bornera de la fuente 5 V'],
+   lab:[{t:'Arduino Mega', p:[7,0.8,24.6]},{t:'Protoboard principal', p:[17.6,1.2,24.7]},{t:'Bornera 5 V', p:[40.6,1.4,24.2]}]},
+
+  {t:'El botón de arriba (final de carrera)', p:'Parte 12 del manual', cab:30, cam:[[30,58,30],[13,45,2]],
+   do:['Es igual al de abajo, pero colgado del techo: la cabina lo aprieta al llegar al piso 4.',
+       'Subí la cabina con la mano hasta arriba.',
+       'Pegá <b>2 cuadritos K</b> uno debajo del otro, colgando del techo por dentro, justo arriba de donde está la torrecita de abajo.',
+       'Pegá debajo la mini protoboard con su botón y sus cables, con el botón mirando hacia abajo.',
+       'Hacé el segundo tacón y pegalo encima del techo de la cabina, justo debajo del botón.'],
+   warn:'<b>Cambio al manual:</b> solo 2 cuadritos. El espacio que queda es para los cables.',
+   pc:['2 cuadritos K (3 × 3 cm)','Mini protoboard','1 botón 12 × 12 mm','Tacón (2 tiras de 1 × 2 cm)'],
+   lab:[{t:'Botón de arriba', p:[34.9,46.2,10]},{t:'2 cuadritos', p:[38.3,47.6,10.5]},{t:'Tacón', p:[37.2,14.8,11.25], cab:1}]},
+
+  {t:'Los botones de cada piso', p:'Parte 12 del manual', cab:10, cam:[[62,32,14],[20.5,22,-1]],
+   do:['Los botones de pasillo son los que usa la gente en cada piso para llamar al ascensor. Van por fuera, en la pared del lado derecho.',
+       'Bajá la cabina hasta abajo. Con marcador, trazá una línea por fuera de la pared derecha, a la altura del piso de la cabina.',
+       'Repetí cada <b>10 cm</b> hacia arriba: 4 líneas en total, una por piso.',
+       'Pegá encima de cada línea su etiqueta M (4 × 2.5 cm): PISO 1, PISO 2, PISO 3 y PISO 4.',
+       'Arriba de cada línea pegá una mini protoboard con sus botones. Piso 1: solo SUBIR. Pisos 2 y 3: SUBIR a la izquierda y BAJAR a la derecha. Piso 4: solo BAJAR.'],
+   warn:'Estas líneas son provisionales. Cuando el motor ya esté calibrado (último paso), corregilas para que coincidan con donde de verdad se detiene la cabina.',
+   pc:['4 etiquetas M (4 × 2.5 cm)','4 mini protoboards','6 botones'],
+   lab:[{t:'Botones del piso 3', p:[43.9,31.5,16.7]},{t:'Etiqueta de piso', p:[43.06,39.6,11.9]},{t:'Línea del piso', p:[43,17.6,13.5]}]},
+
+  {t:'Los cables', p:'Parte 9 del manual', cab:10, cam:[[-12,42,-72],[5,15,-2]],
+   do:['Todos los cables son jumpers: se enchufan, no se sueldan. Si uno no alcanza, alargalo con un jumper macho-hembra.',
+       'Cada botón lleva 2 cables <b>en diagonal</b>: uno va a su pin del Arduino (la señal) y el otro a la fila azul (la tierra o GND).',
+       '<b>Pasillo:</b> piso 1 subir al pin 22, piso 2 subir al 23, piso 2 bajar al 24, piso 3 subir al 25, piso 3 bajar al 26 y piso 4 bajar al 27.',
+       '<b>Tablero:</b> botones 1, 2, 3 y 4 a los pines 30, 31, 32 y 33. MODO al pin 34.',
+       '<b>Finales de carrera:</b> el de abajo al pin 35 y el de arriba al 36.',
+       '<b>Driver:</b> IN1, IN2, IN3 e IN4 a los pines 8, 9, 10 y 11, en ese orden. Su + y su − a los tornillos + y − de la bornera.',
+       'Un cable más, del tornillo − de la bornera a la fila azul.',
+       '<b>Pantalla:</b> GND a GND, VCC a 5V, SDA al pin 20 y SCL al pin 21.',
+       'Pegá los cables a las paredes con masking tape, lejos de la faja. Ponele a cada uno una banderita de tape con su nombre.'],
+   warn:'La guía de cableado 3D muestra cada conexión una por una, con el pin exacto.',
+   pc:['Jumpers macho-macho','Jumpers macho-hembra','Masking tape'],
+   lab:[{t:'Cables de los pisos (por fuera)', p:[44.6,24,19.6]},{t:'Cables del driver', p:[30.2,26,20.6]},{t:'Cables del tablero', p:[6,0.6,14]}]},
+
+  {t:'Probar el motor y enganchar', p:'Partes 11 y 12 del manual', cab:10, cam:[[48,40,58],[6,20,0]],
+   do:['Primero, con la cabina <b>sin enganchar</b> (sostenida con masking tape a media altura), pintá con marcador una rayita en el lado derecho de la faja.',
+       'Conectá la laptop por USB y subí el código. La pantalla dice "Calibrando..." y el motor gira. Mirá la rayita.',
+       'Si la rayita <b>baja</b>, todo bien. Si <b>sube</b>, desconectá el USB de inmediato y en el código cambiá INVERTIR_MOTOR = false por true.',
+       'Ahora sí, enganchá la cabina: el clip aprieta juntos el lado derecho de la faja y la pestaña J, con una gota de silicón en medio.',
+       'Para usarlo sin laptop: el adaptador de 9 V va al conector redondo del Arduino y la fuente de 5 V a la bornera.'],
+   warn:'<b>Ojo:</b> el adaptador de 9 V va solo al Arduino. Nunca al driver: el motor es de 5 V y se quema.',
+   pc:['Clip binder de 19 mm','Fuente 5 V 2 A','Adaptador 9 V'],
+   lab:[{t:'Clip: faja + pestaña J', p:[34.3,11.8,18], cab:1},{t:'Adaptador 9 V (al Arduino)', p:[-10,1.6,30]},{t:'Fuente 5 V (a la bornera)', p:[36,-.6,33]}]},
+
+  {t:'¡Listo!', p:'Parte 13 del manual', z:1.05, cab:null, cam:[[58,46,80],[3,21,0]],
+   do:['Al encenderlo, la cabina baja sola hasta apretar el botón de abajo. Ese es el piso 1.',
+       'Apretá el botón 2 del tablero y medí con una regla cuánto subió la cabina. Debe ser 10 cm.',
+       'Si no dio 10 cm, calculá 6827 × 10 ÷ lo que midió. Poné ese número en PASOS_PISO, en el código, y subilo de nuevo.',
+       'Ensayen la demo: con la cabina en el piso 1, aprieten rápido piso 4 bajar, piso 2 subir y piso 3 subir. En FCFS recorre 6 pisos; en LOOK, 3.'],
+   pc:[], lab:[]},
+];
+
+const GLOSARIO = [
+  ['Cartón pluma','Plancha de espuma blanca con papel en las dos caras. Se corta con cutter.'],
+  ['Letras A a N','Los nombres de las piezas de cartón, como en la plantilla del manual.'],
+  ['Cuadritos K','Cuadritos de cartón de 3 × 3 cm que se apilan para hacer torrecitas o refuerzos.'],
+  ['Protoboard','Tablita blanca con agujeros donde se enchufan los cables sin soldar. La ranura del medio se llama canaleta.'],
+  ['Fila azul','La fila larga marcada con línea azul (−) en la orilla de la protoboard. Es la tierra, también llamada GND.'],
+  ['En diagonal','Los dos cables de un botón van a patas opuestas: uno arriba a la izquierda y el otro abajo a la derecha.'],
+  ['Final de carrera','Botón que la cabina aprieta al llegar a un extremo (piso 1 o piso 4).'],
+  ['Medida X','Distancia de la pared de atrás hasta la mitad de los dientes de la polea. Unos 3 cm.'],
+  ['Calibre','Pedacito de cartón que se usa como separador para dejar la cabina a la distancia correcta.'],
+  ['Tacón','Bloquecito de 1 × 1 × 2 cm pegado a la cabina. Es lo que aprieta el botón.'],
+  ['Jumper','Cable con puntas para enchufar. Macho: punta de alambre. Hembra: punta hueca.'],
+  ['Driver','Plaquita verde que le da fuerza al motor. El Arduino solo no puede moverlo.'],
+];
+
+/* ---------- arranque ---------- */
+let glosOpen = false;
+const TPL = 'data:image/png;base64,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';
+function openZoom(){ $('#zoomImg').src = TPL; $('#zoom').hidden = false; $('#zoomX').focus(); }
+function closeZoom(){ $('#zoom').hidden = true; const b = $('#tplbtn'); if (b) b.focus(); }
+let P, cur = 0, cabOff = 10, cabTarget = 10, tween = null, drops = [], hl = 0;
+const objs = [];
+function isVis(o){ while (o) { if (!o.visible) return false; o = o.parent; } return true; }
+function eachMat(o, fn){ (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m && fn(m)); }
+
+function drawLcd(l1, l2, on){
+  const g = P.lcdTex.userData.ctx, w = 720, h = 260;
+  g.fillStyle = on ? '#2a52cf' : '#17234a'; g.fillRect(0, 0, w, h);
+  const cw = (w - 40) / 16, ch = (h - 50) / 2;
+  g.font = "bold 58px 'Courier New', monospace"; g.textAlign = 'center'; g.textBaseline = 'middle';
+  [l1, l2].forEach((line, r) => { for (let i = 0; i < 16; i++) {
+    const x = 20 + i * cw, y = 25 + r * ch;
+    g.fillStyle = on ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.03)'; g.fillRect(x + 3, y + 6, cw - 6, ch - 12);
+    const c = (line || '')[i]; if (on && c && c !== ' ') { g.fillStyle = '#f2f6ff'; g.fillText(c, x + cw / 2, y + ch / 2 + 2); }
+  }});
+  P.lcdTex.needsUpdate = true;
+}
+
+function camFor(i){
+  const [p, t] = STEPS[i].cam, s = (STEPS[i].z || 1.55) * (camera.aspect < 1 ? 1 / Math.pow(camera.aspect, .55) : 1);
+  const tv = new THREE.Vector3(...t);
+  return [new THREE.Vector3(...p).sub(tv).multiplyScalar(s).add(tv), tv];
+}
+function fly(i, instant){
+  const [p, t] = camFor(i);
+  if (instant || reduceMotion) { camera.position.copy(p); controls.target.copy(t); controls.update(); tween = null; return; }
+  tween = {p0:camera.position.clone(), t0:controls.target.clone(), p1:p, t1:t, k:0};
+}
+
+function show(i, instant){
+  const prev = cur; cur = i;
+  const n = i === 0 ? STEPS.length - 1 : i;
+  objs.forEach(o => { o.visible = o.userData.step <= n; });
+  objs.forEach(o => { if (o.isMesh) eachMat(o, m => { if (m.emissive) { m.emissive.setHex(0xff6a10); m.emissiveIntensity = 0; } }); });
+  hl = (i > 0 && i < STEPS.length - 1) ? 1.8 : 0;
+  drops = [];
+  if (i > 0 && i >= prev && !instant && !reduceMotion) {
+    objs.forEach(o => {
+      if (o.userData.step === i && (!o.parent || o.parent.userData.step !== i) && o.userData.baseY !== undefined) {
+        drops.push({o, t: -drops.length * .012});
+        o.position.y = o.userData.baseY + 7;
+      }
+    });
+  } else objs.forEach(o => { if (o.userData.baseY !== undefined) o.position.y = o.userData.baseY; });
+  const s = STEPS[i];
+  if (s.cab !== null) cabTarget = s.cab;
+  ride.active = s.cab === null;
+  if (ride.active) { ride.k = 0; ride.rec = 0; ride.wait = .6; }
+  if (i >= 14) drawLcd('Piso ' + (Math.round(cabOff / 10) + 1) + '       LOOK', 'Rec:00       P:0', true); else drawLcd('', '', false);
+  fly(i, instant);
+  renderUI();
+  try { localStorage.setItem('armado-ascensor-paso-v2', String(i)); } catch (e) {}
+}
+
+function renderUI(){
+  const s = STEPS[cur];
+  $('#kStep').textContent = cur === 0 ? 'Antes de empezar' : `Paso ${cur} de ${STEPS.length - 1}`;
+  $('#kPart').textContent = s.p;
+  $('#sTitle').textContent = s.t;
+  let html = `<ol>${s.do.map(d => `<li>${d}</li>`).join('')}</ol>`;
+  if (s.warn) html += `<div class="warn">${s.warn}</div>`;
+  if (s.pc.length) html += `<div class="plabel">Piezas de este paso</div><div class="pieces">${s.pc.map(x => `<span>${x}</span>`).join('')}</div>`;
+  if (s.img) html += `<button class="tplbtn" id="tplbtn"><img src="${TPL}" alt="Plantilla de cortes de los dos pliegos"><span>Tocá para ver la plantilla en grande</span></button>`;
+  if (s.table) html += `<div class="plabel">Lista de piezas (medidas en cm)</div><div class="tw"><table class="cuts"><thead><tr><th>Letra</th><th>Qué es</th><th>Medida</th><th>Cant.</th></tr></thead><tbody>${s.table.map(r => `<tr><td class="lt">${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td></tr>`).join('')}</tbody></table></div>`;
+  if (cur === 0) html += `<p class="tip">También podés usar las flechas del teclado.</p>`;
+  html += `<details class="glos"${glosOpen ? ' open' : ''}><summary>¿Qué significa?</summary><dl>${GLOSARIO.map(g => `<dt>${g[0]}</dt><dd>${g[1]}</dd>`).join('')}</dl></details>`;
+  $('#sBody').innerHTML = html; $('#sBody').scrollTop = 0;
+  const tb = $('#tplbtn'); if (tb) tb.addEventListener('click', openZoom);
+  const gd = $('#sBody .glos'); gd.addEventListener('toggle', () => { glosOpen = gd.open; });
+  setLabels(cur);
+  $('#prev').disabled = cur === 0;
+  $('#next').textContent = cur === 0 ? 'Empezar' : cur === STEPS.length - 1 ? 'Volver a empezar' : 'Siguiente';
+  [...$('#track').children].forEach((b, k) => { b.classList.toggle('done', k < cur); if (k === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+}
+
+/* etiquetas que señalan las piezas nuevas */
+const labG = new THREE.Group();
+function mkLabel(text){
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  const font = `700 40px ${FONT}`; g.font = font;
+  const w = Math.ceil(g.measureText(text).width) + 40, h = 62, tip = 16;
+  c.width = w; c.height = h + tip;
+  g.font = font; g.fillStyle = 'rgba(21,33,29,.94)';
+  const r = 18; g.beginPath(); g.moveTo(r, 0); g.arcTo(w, 0, w, h, r); g.arcTo(w, h, 0, h, r); g.arcTo(0, h, 0, 0, r); g.arcTo(0, 0, w, 0, r); g.fill();
+  g.beginPath(); g.moveTo(w / 2 - 12, h - 1); g.lineTo(w / 2 + 12, h - 1); g.lineTo(w / 2, h + tip); g.fill();
+  g.fillStyle = '#ffffff'; g.textBaseline = 'middle'; g.fillText(text, 20, h / 2 + 2);
+  const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, sizeAttenuation:false, transparent:true}));
+  const k = .03 / 62; s.scale.set(w * k, (h + tip) * k, 1); s.center.set(.5, 0); s.renderOrder = 999;
+  return s;
+}
+function setLabels(i){
+  while (labG.children.length) { const o = labG.children[0]; labG.remove(o); if (o.material.map) o.material.map.dispose(); o.material.dispose(); }
+  (STEPS[i].lab || []).forEach(l => {
+    const s = mkLabel(l.t); s.userData.lp = l; labG.add(s);
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(.28, 14, 10), new THREE.MeshBasicMaterial({color:0xea580c, depthTest:false, transparent:true}));
+    dot.renderOrder = 998; dot.userData.lp = l; labG.add(dot);
+  });
+}
+
+/* viaje de la cabina en el último paso */
+const ride = {active:false, seq:[0,10,20,30,20,10], k:0, wait:0, rec:0};
+
+function layout(){
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  const r = $('#panel').getBoundingClientRect();
+  if (r.width > w * .6) camera.setViewOffset(w, h, 0, Math.round(r.height * .45), w, h);
+  else camera.setViewOffset(w, h, Math.round((r.width + 16) / 2), 0, w, h);
+  camera.updateProjectionMatrix();
+}
+
+function init(){
+  P = build();
+  CUR = -1;
+  scene.add(labG);
+  scene.traverse(o => { if (o.userData && o.userData.step !== undefined && o.userData.step > 0) objs.push(o); });
+  objs.forEach(o => {
+    if (o.isMesh) o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone();
+    o.userData.baseY = o.position.y;
+  });
+  const T = $('#track');
+  STEPS.forEach((s, k) => { const b = document.createElement('button'); b.setAttribute('aria-label', k === 0 ? 'Vista previa' : `Paso ${k}: ${s.t}`); b.title = k === 0 ? 'Vista previa' : `${k}. ${s.t}`; b.addEventListener('click', () => show(k)); T.appendChild(b); });
+  $('#next').addEventListener('click', () => show(cur === STEPS.length - 1 ? 1 : cur + 1));
+  $('#prev').addEventListener('click', () => { if (cur > 0) show(cur - 1); });
+  addEventListener('keydown', e => {
+    if (!$('#zoom').hidden) return;
+    if (e.key === 'ArrowRight' && cur < STEPS.length - 1) show(cur + 1);
+    if (e.key === 'ArrowLeft' && cur > 0) show(cur - 1);
+  });
+  $('#infoX').addEventListener('click', () => { $('#info').hidden = true; });
+  $('#zoomX').addEventListener('click', closeZoom);
+  $('#zoom').addEventListener('click', e => { if (e.target.id === 'zoom') closeZoom(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#zoom').hidden) closeZoom(); });
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
+  canvas.addEventListener('pointerdown', e => { down = {x:e.clientX, y:e.clientY, t:performance.now()}; tween = null; });
+  canvas.addEventListener('pointerup', e => {
+    if (!down) return;
+    const ok = Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6 && performance.now() - down.t < 600; down = null;
+    if (!ok) return;
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(scene.children, true).find(h => isVis(h.object) && h.object.userData && h.object.userData.info);
+    if (!hit) { $('#info').hidden = true; return; }
+    $('#infoT').textContent = hit.object.userData.info.t; $('#infoD').textContent = hit.object.userData.info.d; $('#info').hidden = false;
+  });
+
+  let start = 0;
+  try { const v = parseInt(localStorage.getItem('armado-ascensor-paso-v2'), 10); if (v >= 0 && v < STEPS.length) start = v; } catch (e) {}
+  layout();
+  addEventListener('resize', () => { layout(); });
+  if (window.ResizeObserver) new ResizeObserver(layout).observe($('#panel'));
+  cabOff = STEPS[start].cab === null ? 10 : STEPS[start].cab;
+  show(start, true);
+  $('#loading').remove();
+
+  let last = performance.now();
+  renderer.setAnimationLoop(now => {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    // piezas nuevas cayendo en su lugar
+    if (drops.length) {
+      drops = drops.filter(d => {
+        d.t += dt / .55; const k = Math.max(0, Math.min(1, d.t)), e = 1 - Math.pow(1 - k, 3);
+        d.o.position.y = d.o.userData.baseY + 7 * (1 - e);
+        return k < 1;
+      });
+    }
+    // resaltado naranja que se apaga a un tono suave
+    if (hl > 0 || cur) {
+      hl = Math.max(0, hl - dt);
+      const v = cur > 0 && cur < STEPS.length - 1 ? (hl > 0 ? .14 + .22 * Math.sin(hl * 6) ** 2 : .14) : 0;
+      objs.forEach(o => { if (o.isMesh && o.userData.step === cur) eachMat(o, m => { if (m.emissive) m.emissiveIntensity = v; }); });
+    }
+    // cabina
+    if (ride.active) {
+      if (ride.wait > 0) ride.wait -= dt;
+      else {
+        const tgt = ride.seq[ride.k % ride.seq.length], d = tgt - cabOff, sp = 10 / 1.6 * dt;
+        if (Math.abs(d) <= sp) {
+          if (Math.abs(d) > 0) ride.rec++;
+          cabOff = tgt; ride.k++; ride.wait = 1.1;
+          drawLcd(`Piso ${tgt / 10 + 1}       LOOK`, `Rec:${String(ride.rec).padStart(2, '0')}   PUERTA`, true);
+        } else {
+          cabOff += Math.sign(d) * sp;
+          const dir = Math.sign(d) > 0 ? '^' : 'v';
+          if (Math.random() < .05) drawLcd(`Piso ${Math.round(cabOff / 10) + 1} ${dir}     LOOK`, `Rec:${String(ride.rec).padStart(2, '0')}       P:1`, true);
+        }
+      }
+    } else {
+      const d = cabTarget - cabOff; cabOff += reduceMotion ? d : d * Math.min(1, dt * 4);
+    }
+    P.cabinG.position.y = cabOff;
+    labG.children.forEach(o => { const l = o.userData.lp; o.position.set(X(l.p[0]), l.p[1] + (l.cab ? cabOff : 0), Z(l.p[2])); });
+    const disp = cabOff - 10;
+    P.pulleyTop.rotation.z = disp / .955; P.pulleyBot.rotation.z = disp / .955;
+    P.texR.offset.y = -disp / .2; P.texL.offset.y = disp / .2;
+    P.swLow.cap.position.z = cabOff < .3 ? .42 : .53;
+    P.swTop.cap.position.z = cabOff > 29.7 ? .42 : .53;
+    if (tween) {
+      tween.k = Math.min(1, tween.k + dt / .8);
+      const e = 1 - Math.pow(1 - tween.k, 3);
+      camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e);
+      if (tween.k >= 1) tween = null;
+    }
+    controls.update(); renderer.render(scene, camera);
+  });
+}
+const fontsReady = document.fonts && document.fonts.load ? Promise.race([document.fonts.load(`800 40px ${FONT}`), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve();
+fontsReady.then(init, init);
+})();
+</script>
+
+</body></html>

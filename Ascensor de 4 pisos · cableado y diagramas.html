@@ -1,0 +1,1496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ascensor de 4 pisos · cableado y diagramas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#dfe5e1; --ink:#15211d; --muted:#586a63; --panel:rgba(255,255,255,.94);
+  --line:#ccd7d1; --chip:#edf2ef; --accent:#ea580c; --accent-ink:#ffffff; --ok:#15803d;
+  --paper:#ffffff; --shadow:0 10px 30px rgba(20,40,32,.16);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111916; --ink:#e6eeea; --muted:#94a69e; --panel:rgba(24,34,30,.94);
+    --line:#2c3b35; --chip:#22302a; --accent:#fb7a2e; --accent-ink:#1b0c02; --ok:#4ade80;
+    --paper:#f7f8f7; --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111916; --ink:#e6eeea; --muted:#94a69e; --panel:rgba(24,34,30,.94);
+  --line:#2c3b35; --chip:#22302a; --accent:#fb7a2e; --accent-ink:#1b0c02; --ok:#4ade80;
+  --paper:#f7f8f7; --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;position:relative;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+
+.top{position:absolute;top:14px;left:16px;right:16px;display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap;pointer-events:none;z-index:3}
+.top h1{margin:0;font-size:24px;line-height:1.05;font-weight:800;letter-spacing:-.02em;pointer-events:auto}
+.tabs{pointer-events:auto;display:flex;background:var(--panel);padding:4px;border-radius:12px;box-shadow:var(--shadow);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:9px;font-weight:700;font-size:14.5px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+
+.info{position:absolute;left:16px;top:70px;max-width:min(330px,calc(100% - 32px));background:var(--panel);border-radius:14px;box-shadow:var(--shadow);
+  padding:11px 38px 11px 14px;border-left:4px solid var(--accent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:2}
+.info[hidden]{display:none}
+.info b{display:block;font-size:15px;margin-bottom:2px}
+.info span{font-size:13.5px;line-height:1.4;color:var(--muted)}
+.info button{position:absolute;top:6px;right:6px;border:0;background:transparent;width:28px;height:28px;border-radius:8px;font-size:18px;color:var(--muted)}
+
+.panel{position:absolute;top:16px;right:16px;bottom:16px;width:370px;display:flex;flex-direction:column;background:var(--panel);border-radius:18px;
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow:hidden;z-index:2}
+.phead{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.prog{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.prog strong{font-size:17px}
+.prog span{font-size:13px;color:var(--muted)}
+.bar{height:6px;border-radius:6px;background:var(--chip);margin:8px 0 10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.opts{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13.5px}
+.opts label{display:flex;align-items:center;gap:6px}
+.opts input[type=range]{width:110px;accent-color:var(--accent)}
+.opts input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.jump{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.35}
+.pbody{overflow:auto;flex:1}
+.detail{padding:14px 16px;border-bottom:1px solid var(--line);background:var(--chip)}
+.detail[hidden]{display:none}
+.detail h2{margin:0 0 2px;font-size:19px;font-weight:800;letter-spacing:-.01em}
+.detail .grp{font-size:12.5px;color:var(--muted)}
+.detail ul{margin:10px 0 0;padding:0;list-style:none}
+.detail li{font-size:13.5px;line-height:1.45;margin:0 0 8px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1px solid rgba(0,0,0,.25)}
+.dbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.dbtns button{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 10px;font-size:13px;font-weight:600}
+.dnav{display:flex;align-items:center;gap:8px;margin-top:10px}
+.dnav button{border:0;background:var(--panel);border-radius:9px;padding:8px 12px;font-weight:700;font-size:13.5px}
+.dnav .done{margin-left:auto;background:var(--accent);color:var(--accent-ink)}
+.dnav .done[aria-pressed="true"]{background:var(--ok);color:#fff}
+.list{padding:6px 8px 16px}
+.list h3{font-size:13px;font-weight:600;color:var(--muted);margin:12px 8px 4px}
+.list button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:left;padding:8px 8px;border-radius:10px;font-size:14px}
+.list button:hover{background:var(--chip)}
+.list button[aria-current="true"]{background:var(--chip);font-weight:700}
+.list .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.list .ck{margin-left:auto;font-size:12px;color:var(--ok);font-weight:700}
+.list small{color:var(--muted);font-size:12.5px}
+.all{margin:4px 8px 0;border:1px solid var(--line)!important;justify-content:center}
+
+.diagrams{position:absolute;inset:0;overflow:auto;padding:76px 16px 40px;z-index:1}
+.diagrams[hidden]{display:none}
+.panel[hidden]{display:none}
+.dwrap{max-width:900px;margin:0 auto}
+.fix{background:var(--panel);border-left:4px solid var(--accent);border-radius:14px;padding:14px 16px;margin:0 0 18px;box-shadow:var(--shadow)}
+.fix h2{margin:0 0 6px;font-size:18px}
+.fix p{margin:6px 0;font-size:14.5px;line-height:1.5;max-width:70ch}
+figure{margin:0 0 18px;background:var(--paper);border-radius:16px;padding:18px 18px 12px;box-shadow:var(--shadow);color:#1f2937}
+figure h2{margin:0 0 10px;font-size:18px;font-weight:800;color:#15211d}
+figure .svg{overflow-x:auto}
+figure svg{display:block;width:100%;min-width:520px;height:auto}
+figcaption{font-size:13.5px;color:#586a63;margin-top:8px;line-height:1.4;max-width:75ch}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+
+@media (max-width:760px){
+  .top{top:10px;left:12px;right:12px}
+  .top h1{font-size:20px}
+  .panel{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:52%}
+  .info{top:auto;bottom:calc(52% + 16px);left:10px}
+  .prog span{display:none}
+  .jump{font-size:12px}
+  .diagrams{padding:100px 10px 30px}
+  figure{padding:14px 12px 10px}
+}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="Modelo 3D del ascensor con todos los cables"></canvas>
+<div class="loading" id="loading">Cargando el modelo…</div>
+
+<header class="top">
+  <h1>Cableado del ascensor</h1>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t3d" aria-selected="true" aria-controls="panel">En 3D</button>
+    <button role="tab" id="tdg" aria-selected="false" aria-controls="diagrams">Diagramas</button>
+  </div>
+</header>
+
+<div class="info" id="info" hidden role="status"><b id="infoT"></b><span id="infoD"></span><button id="infoX" aria-label="Cerrar">×</button></div>
+
+<section class="panel" id="panel" aria-label="Conexiones">
+  <div class="phead">
+    <div class="prog"><strong id="progT">0 de 0 conectadas</strong><span>se guarda en este navegador</span></div>
+    <div class="bar"><i id="progB"></i></div>
+    <div class="opts">
+      <label><input type="checkbox" id="xray"> Ver a través de la torre</label>
+      <label>Cabina <input type="range" id="lift" min="1" max="4" step="0.05" value="2" aria-label="Altura de la cabina"></label>
+    </div>
+    <div class="jump" id="jump"></div>
+  </div>
+  <div class="pbody">
+    <div class="detail" id="detail" hidden>
+      <div class="grp" id="dGrp"></div>
+      <h2 id="dT"></h2>
+      <ul id="dList"></ul>
+      <div class="dbtns" id="dEnds"></div>
+      <div class="dnav">
+        <button id="prev">Anterior</button><button id="next">Siguiente</button>
+        <button class="done" id="done" aria-pressed="false">Ya lo conecté</button>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</section>
+
+<section class="diagrams" id="diagrams" hidden aria-label="Diagramas">
+  <div class="dwrap">
+    <div class="fix">
+      <h2>Dos correcciones al manual</h2>
+      <p><b>Repisa L:</b> cortala de 6 × 2 cm, no de 6 × 4. Con 4 cm invade el camino de la faja y la roza.</p>
+      <p><b>Finales de carrera:</b> los jumpers se enchufan parados en la mini protoboard y sobresalen como 1.5 cm, más que el botón. Si la cabina baja sobre ellos, choca con los cables antes de apretar el botón. Por eso la torrecita de abajo lleva <b>8 cuadritos K</b> (no 12), la de arriba solo <b>2</b>, y la cabina lleva un <b>tacón de 1 × 1 × 2 cm</b> abajo y otro arriba, justo sobre cada botón. El tacón es el que aprieta; los cables quedan libres a los lados.</p>
+    </div>
+    <figure><h2>Esquema de conexiones</h2><div class="svg"><svg role="img" aria-label="Esquema de conexiones" preserveAspectRatio="xMinYMin meet" viewBox="0 0 520 560" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<desc>...</desc>
+	<clipPath id="clip-esquema">
+		<rect x="0" y="0" width="520" height="560"/>
+	</clipPath>
+	<g id="group-esquema" transform="scale(1,-1) translate(0,-560)" style="clip-path: url(#clip-esquema)">
+		<g transform="">
+			<rect x="18" y="14" width="490" height="10" style="stroke: rgb(11%,30%,84%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(85%,91%,99%); fill-rule: evenodd;"/>
+			<text x="191.9864" y="17" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.2px;fill: rgb(11%,30%,84%); stroke:none;" transform="translate(0,34) scale(1,-1)">Fila azul (GND) de la protoboard principal</text>
+			<rect x="200" y="64" width="104" height="448" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 1; fill: rgb(85%,91%,99%); fill-rule: evenodd;"/>
+			<text x="234.7515" y="496" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(14%,38%,92%); stroke:none;" transform="translate(0,992) scale(1,-1)">Arduino</text>
+			<text x="229.239" y="485" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(14%,38%,92%); stroke:none;" transform="translate(0,970) scale(1,-1)">Mega 2560</text>
+			<rect x="212" y="512" width="26" height="12" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<text x="219.2215" y="528" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,1056) scale(1,-1)">jack</text>
+			<polyline points="225 524, 225 540, 150 540" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 2.2; fill: None; fill-rule: evenodd;"/>
+			<text x="21.173599999999993" y="537" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,1074) scale(1,-1)">Adaptador Elegoo 9 V (solo al Mega)</text>
+			<rect x="46" y="457" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="78.22605" y="463.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,926) scale(1,-1)">Pasillo P1 subir</text>
+			<polyline points="158 469, 200 469" style="stroke: rgb(94%,76%,0%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="466.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,933) scale(1,-1)">pin 22</text>
+			<polyline points="46 463, 30 463" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="463" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="427" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="78.22605" y="433.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,866) scale(1,-1)">Pasillo P2 subir</text>
+			<polyline points="158 439, 200 439" style="stroke: rgb(94%,47%,7%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="436.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,873) scale(1,-1)">pin 23</text>
+			<polyline points="46 433, 30 433" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="433" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="397" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="78.03285" y="403.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,806) scale(1,-1)">Pasillo P2 bajar</text>
+			<polyline points="158 409, 200 409" style="stroke: rgb(12%,65%,29%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="406.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,813) scale(1,-1)">pin 24</text>
+			<polyline points="46 403, 30 403" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="403" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="367" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="78.22605" y="373.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,746) scale(1,-1)">Pasillo P3 subir</text>
+			<polyline points="158 379, 200 379" style="stroke: rgb(16%,43%,87%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="376.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,753) scale(1,-1)">pin 25</text>
+			<polyline points="46 373, 30 373" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="373" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="337" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="78.03285" y="343.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,686) scale(1,-1)">Pasillo P3 bajar</text>
+			<polyline points="158 349, 200 349" style="stroke: rgb(55%,26%,83%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="346.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,693) scale(1,-1)">pin 26</text>
+			<polyline points="46 343, 30 343" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="343" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="307" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="78.03285" y="313.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,626) scale(1,-1)">Pasillo P4 bajar</text>
+			<polyline points="158 319, 200 319" style="stroke: rgb(54%,56%,58%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="316.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,633) scale(1,-1)">pin 27</text>
+			<polyline points="46 313, 30 313" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="313" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="277" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="76.1112" y="283.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,566) scale(1,-1)">Cabina destino 1</text>
+			<polyline points="158 289, 200 289" style="stroke: rgb(54%,35%,16%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="286.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,573) scale(1,-1)">pin 30</text>
+			<polyline points="46 283, 30 283" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="283" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="247" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="76.1112" y="253.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,506) scale(1,-1)">Cabina destino 2</text>
+			<polyline points="158 259, 200 259" style="stroke: rgb(94%,76%,0%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="256.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,513) scale(1,-1)">pin 31</text>
+			<polyline points="46 253, 30 253" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="253" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="217" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="76.1112" y="223.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,446) scale(1,-1)">Cabina destino 3</text>
+			<polyline points="158 229, 200 229" style="stroke: rgb(94%,47%,7%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="226.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,453) scale(1,-1)">pin 32</text>
+			<polyline points="46 223, 30 223" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="223" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="187" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="76.1112" y="193.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,386) scale(1,-1)">Cabina destino 4</text>
+			<polyline points="158 199, 200 199" style="stroke: rgb(12%,65%,29%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="196.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,393) scale(1,-1)">pin 33</text>
+			<polyline points="46 193, 30 193" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="193" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="157" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="81.2931" y="163.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,326) scale(1,-1)">Botón MODO</text>
+			<polyline points="158 169, 200 169" style="stroke: rgb(16%,43%,87%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="166.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,333) scale(1,-1)">pin 34</text>
+			<polyline points="46 163, 30 163" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="163" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="127" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="68.4453" y="133.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,266) scale(1,-1)">Final de carrera abajo</text>
+			<polyline points="158 139, 200 139" style="stroke: rgb(55%,26%,83%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="136.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,273) scale(1,-1)">pin 35</text>
+			<polyline points="46 133, 30 133" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="133" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<rect x="46" y="97" width="112" height="18" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="68.0658" y="103.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,206) scale(1,-1)">Final de carrera arriba</text>
+			<polyline points="158 109, 200 109" style="stroke: rgb(54%,56%,58%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="206" y="106.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,213) scale(1,-1)">pin 36</text>
+			<polyline points="46 103, 30 103" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1; fill: None; fill-rule: evenodd;"/>
+			<circle cx="30" cy="103" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<polyline points="30 463, 30 24" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="36" y="30" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,60) scale(1,-1)">GND de cada botón</text>
+			<rect x="382" y="380" width="76" height="84" style="stroke: rgb(8%,50%,23%); stroke-linecap: butt; stroke-width: 0.9; fill: rgb(86%,98%,90%); fill-rule: evenodd;"/>
+			<text x="408.44" y="450" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(8%,50%,23%); stroke:none;" transform="translate(0,900) scale(1,-1)">Driver</text>
+			<text x="402.884" y="440" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(8%,50%,23%); stroke:none;" transform="translate(0,880) scale(1,-1)">ULN2003</text>
+			<polyline points="304 426, 382 426" style="stroke: rgb(94%,76%,0%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="281.662" y="423.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,847) scale(1,-1)">pin 8</text>
+			<text x="386" y="423.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,847) scale(1,-1)">IN1</text>
+			<polyline points="304 414, 382 414" style="stroke: rgb(94%,47%,7%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="281.662" y="411.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,823) scale(1,-1)">pin 9</text>
+			<text x="386" y="411.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,823) scale(1,-1)">IN2</text>
+			<polyline points="304 402, 382 402" style="stroke: rgb(12%,65%,29%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="277.77" y="399.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,799) scale(1,-1)">pin 10</text>
+			<text x="386" y="399.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,799) scale(1,-1)">IN3</text>
+			<polyline points="304 390, 382 390" style="stroke: rgb(16%,43%,87%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="277.77" y="387.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,775) scale(1,-1)">pin 11</text>
+			<text x="386" y="387.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,775) scale(1,-1)">IN4</text>
+			<circle cx="488" cy="422" r="17" style="stroke: rgb(29%,33%,38%); stroke-linecap: butt; stroke-width: 0.9; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<text x="478.5582" y="425" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,850) scale(1,-1)">Motor</text>
+			<text x="475.2661" y="416" style="font-family: Helvetica, Arial, sans-serif; font-size: 5.8px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,832) scale(1,-1)">28BYJ-48</text>
+			<polyline points="458 422, 471 422" style="stroke: rgb(16%,43%,87%); stroke-linecap: butt; stroke-width: 2.5; fill: None; fill-rule: evenodd;"/>
+			<rect x="382" y="326" width="88" height="36" style="stroke: rgb(8%,50%,23%); stroke-linecap: butt; stroke-width: 0.9; fill: rgb(86%,98%,90%); fill-rule: evenodd;"/>
+			<text x="388.4625" y="349" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(8%,50%,23%); stroke:none;" transform="translate(0,698) scale(1,-1)">Bornera fuente 5 V 2 A</text>
+			<text x="402.0028" y="337" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(72%,10%,10%); stroke:none;" transform="translate(0,674) scale(1,-1)">nunca 9 V aquí</text>
+			<polyline points="398 380, 398 362" style="stroke: rgb(82%,22%,17%); stroke-linecap: butt; stroke-width: 1.5; fill: None; fill-rule: evenodd;"/>
+			<text x="389.328" y="368" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(82%,22%,17%); stroke:none;" transform="translate(0,736) scale(1,-1)">+</text>
+			<polyline points="446 380, 446 362" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1.5; fill: None; fill-rule: evenodd;"/>
+			<text x="450" y="368" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,736) scale(1,-1)">−</text>
+			<polyline points="470 340, 505 340, 505 24" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<circle cx="505" cy="24" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<text x="474" y="343" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,686) scale(1,-1)">−</text>
+			<polyline points="426 326, 426 306" style="stroke: rgb(6%,9%,15%); stroke-linecap: butt; stroke-width: 2.5; fill: None; fill-rule: evenodd;"/>
+			<text x="432" y="306" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,612) scale(1,-1)">a la pared</text>
+			<rect x="382" y="196" width="96" height="84" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(11%,22%,54%); fill-rule: evenodd;"/>
+			<text x="406.03375" y="268" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,536) scale(1,-1)">LCD 16x2 I2C</text>
+			<text x="386" y="251.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(74%,85%,99%); stroke:none;" transform="translate(0,503) scale(1,-1)">SDA</text>
+			<text x="386" y="237.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(74%,85%,99%); stroke:none;" transform="translate(0,475) scale(1,-1)">SCL</text>
+			<text x="386" y="219.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(74%,85%,99%); stroke:none;" transform="translate(0,439) scale(1,-1)">VCC</text>
+			<text x="386" y="205.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(74%,85%,99%); stroke:none;" transform="translate(0,411) scale(1,-1)">GND</text>
+			<polyline points="304 254, 382 254" style="stroke: rgb(16%,43%,87%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="256.385" y="251.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,503) scale(1,-1)">pin 20 (SDA)</text>
+			<polyline points="304 240, 382 240" style="stroke: rgb(12%,65%,29%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="257.162" y="237.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,475) scale(1,-1)">pin 21 (SCL)</text>
+			<polyline points="304 180, 340 180, 340 222, 382 222" style="stroke: rgb(82%,22%,17%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="289.439" y="177.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,355) scale(1,-1)">5V</text>
+			<polyline points="304 166, 352 166, 352 208, 382 208" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="282.446" y="163.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,327) scale(1,-1)">GND</text>
+			<polyline points="304 96, 330 96, 330 24" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 1.3; fill: None; fill-rule: evenodd;"/>
+			<text x="282.446" y="93.6" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,187) scale(1,-1)">GND</text>
+			<circle cx="330" cy="24" r="2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+		</g>
+	</g>
+</svg>
+</div><figcaption>Todas las conexiones eléctricas, con los mismos colores del modelo 3D. Cada botón lleva su propio cable GND a la fila azul; aquí se dibujan unidos para que se lea mejor.</figcaption></figure>
+<figure><h2>Vista de frente</h2><div class="svg"><svg role="img" aria-label="Vista de frente" preserveAspectRatio="xMinYMin meet" viewBox="0 0 512 356" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<desc>...</desc>
+	<clipPath id="clip-frontal">
+		<rect x="0" y="0" width="512.0" height="356.0"/>
+	</clipPath>
+	<g id="group-frontal" transform="scale(1,-1) translate(0,-356)" style="clip-path: url(#clip-frontal)">
+		<g transform="">
+			<rect x="8.0" y="7.6" width="288.0" height="6.4" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="14.4" y="14.0" width="128.0" height="64.0" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<rect x="55.36000000000001" y="51.760000000000005" width="46.07999999999999" height="16.64" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(2%,37%,27%); fill-rule: evenodd;"/>
+			<text x="60.822" y="57.52" style="font-family: Helvetica, Arial, sans-serif; font-size: 5.5px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,115) scale(1,-1)">Piso 1   LOOK</text>
+			<rect x="51.84" y="15.92" width="53.120000000000005" height="33.92" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="54.72" y="29.36" width="7.040000000000006" height="7.039999999999999" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<rect x="64.96000000000001" y="29.36" width="7.039999999999992" height="7.039999999999999" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<rect x="75.2" y="29.36" width="7.039999999999992" height="7.039999999999999" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<rect x="85.44" y="29.36" width="7.039999999999992" height="7.039999999999999" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<rect x="96.32000000000001" y="29.36" width="7.039999999999992" height="7.039999999999999" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(91%,34%,4%); fill-rule: evenodd;"/>
+			<rect x="155.20000000000002" y="14.0" width="128.00000000000003" height="307.20000000000005" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(98%,98%,98%); fill-rule: evenodd;"/>
+			<path d="M 219.2,14 L 219.2,321.2 Z" style="stroke: rgb(81%,83%,85%); stroke-linecap: butt; stroke-width: 0.5; stroke-dasharray: 3, 2;"/>
+			<rect x="155.20000000000002" y="14.0" width="3.1999999999999886" height="307.20000000000005" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="280.0" y="14.0" width="3.1999999999999886" height="307.20000000000005" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="155.20000000000002" y="321.20000000000005" width="128.00000000000003" height="3.1999999999999886" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<path d="M 158.4,62.64 L 280,62.64 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.5; stroke-dasharray: 2, 2;"/>
+			<text x="160.32000000000002" y="64.64" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 5.2px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,129) scale(1,-1)">PISO 1</text>
+			<rect x="283.2" y="64.56" width="5.759999999999991" height="25.599999999999994" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<path d="M 158.4,126.64 L 280,126.64 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.5; stroke-dasharray: 2, 2;"/>
+			<text x="160.32000000000002" y="128.64000000000001" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 5.2px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,257) scale(1,-1)">PISO 2</text>
+			<rect x="283.2" y="128.56" width="5.759999999999991" height="25.599999999999994" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<path d="M 158.4,190.64 L 280,190.64 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.5; stroke-dasharray: 2, 2;"/>
+			<text x="160.32000000000002" y="192.64000000000001" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 5.2px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,385) scale(1,-1)">PISO 3</text>
+			<rect x="283.2" y="192.56000000000003" width="5.759999999999991" height="25.599999999999994" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<path d="M 158.4,254.64 L 280,254.64 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.5; stroke-dasharray: 2, 2;"/>
+			<text x="160.32000000000002" y="256.64" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 5.2px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,513) scale(1,-1)">PISO 4</text>
+			<rect x="283.2" y="256.56" width="5.759999999999991" height="25.600000000000023" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<path d="M 182.72,14 L 182.72,330.8 Z" style="stroke: rgb(29%,33%,38%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 255.68,14 L 255.68,330.8 Z" style="stroke: rgb(29%,33%,38%); stroke-linecap: butt; stroke-width: 3.6;"/>
+			<path d="M 213.12,42.16 L 213.12,295.6 Z" style="stroke: rgb(6%,9%,15%); stroke-linecap: butt; stroke-width: 1.6;"/>
+			<path d="M 225.28,42.16 L 225.28,295.6 Z" style="stroke: rgb(6%,9%,15%); stroke-linecap: butt; stroke-width: 1.6;"/>
+			<rect x="200.0" y="278.32" width="38.400000000000006" height="3.1999999999999886" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<circle cx="219.20000000000002" cy="290.48" r="8.959999999999999" style="stroke: rgb(29%,33%,38%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(79%,83%,88%); fill-rule: evenodd;"/>
+			<circle cx="219.20000000000002" cy="295.6" r="6.08" style="stroke: rgb(6%,9%,15%); stroke-linecap: butt; stroke-width: 1.6; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<circle cx="219.20000000000002" cy="42.160000000000004" r="6.08" style="stroke: rgb(6%,9%,15%); stroke-linecap: butt; stroke-width: 1.6; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<circle cx="219.20000000000002" cy="42.160000000000004" r="1.2" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(29%,33%,38%); fill-rule: evenodd;"/>
+			<rect x="232.0" y="14.0" width="19.19999999999999" height="38.400000000000006" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<rect x="230.72" y="52.400000000000006" width="21.760000000000048" height="5.439999999999998" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="238.4" y="57.84" width="7.0400000000000205" height="4.160000000000004" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<rect x="232.0" y="301.36" width="19.19999999999999" height="19.840000000000032" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<rect x="230.72" y="295.92" width="21.760000000000048" height="5.439999999999998" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="238.4" y="293.04" width="7.0400000000000205" height="2.8799999999999955" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<rect x="179.64800000000002" y="126.64000000000001" width="6.1440000000000055" height="38.400000000000006" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<rect x="252.608" y="126.64000000000001" width="6.1440000000000055" height="38.400000000000006" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<rect x="187.20000000000002" y="126.64000000000001" width="64.0" height="38.400000000000006" style="stroke: rgb(76%,25%,4%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="191.53600000000003" y="143.92000000000002" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6px;fill: rgb(76%,25%,4%); stroke:none;" transform="translate(0,287) scale(1,-1)">CABINA</text>
+			<rect x="223.68000000000004" y="139.44" width="6.400000000000006" height="12.800000000000011" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,9%,15%); fill-rule: evenodd;"/>
+			<text x="302.40000000000003" y="332.78000000000003" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,665) scale(1,-1)">Varilla de hierro (riel)</text>
+			<path d="M 299.4,335.28 L 255.68,318 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="255.68000000000004" cy="318.0" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="302.40000000000003" y="307.18" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,614) scale(1,-1)">Final de carrera de arriba</text>
+			<path d="M 299.4,309.68 L 252.48,297.52 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="252.48000000000002" cy="297.52" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="302.40000000000003" y="225.9" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,451) scale(1,-1)">Botones de pasillo (por fuera)</text>
+			<path d="M 299.4,228.4 L 288.96,218.8 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="288.96" cy="218.8" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="302.40000000000003" y="143.34" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,286) scale(1,-1)">Clip: agarra la cabina a la faja</text>
+			<path d="M 299.4,145.84 L 230.08,145.84 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="230.08000000000004" cy="145.84" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="302.40000000000003" y="78.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,157) scale(1,-1)">Final de carrera de abajo</text>
+			<path d="M 299.4,81.2 L 252.48,59.44 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="252.48000000000002" cy="59.44" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="302.40000000000003" y="31.980000000000004" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,63) scale(1,-1)">Polea de abajo (gira en el tornillo)</text>
+			<path d="M 299.4,34.48 L 225.28,42.16 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="225.28000000000003" cy="42.160000000000004" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="72.20960000000001" y="312.3" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,624) scale(1,-1)">Motor y polea de arriba</text>
+			<path d="M 149.24,314.8 L 210.88,293.04 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="210.88" cy="293.04" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="91.82240000000002" y="270.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,541) scale(1,-1)">Panel trasero (B)</text>
+			<path d="M 149.24,273.2 L 162.88,260.4 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="162.88" cy="260.4" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="57.802400000000006" y="229.10000000000002" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,458) scale(1,-1)">Faja dentada (lazo cerrado)</text>
+			<path d="M 149.24,231.6 L 213.12,215.6 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="213.12" cy="215.60000000000002" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="95.82560000000001" y="184.3" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,368) scale(1,-1)">Cabina (G, H, I)</text>
+			<path d="M 149.24,186.8 L 187.2,158 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="187.20000000000002" cy="158.0" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="100.61360000000002" y="145.9" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,291) scale(1,-1)">Guía de cobre</text>
+			<path d="M 149.24,148.4 L 180.16,135.6 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="180.16" cy="135.60000000000002" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="59.393600000000006" y="97.9" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.2px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,195) scale(1,-1)">Tablero: pantalla y botones</text>
+			<path d="M 149.24,100.4 L 78.4,78 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="78.4" cy="78.0" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+		</g>
+	</g>
+</svg>
+</div><figcaption>El ascensor terminado, con la cabina en el piso 2.</figcaption></figure>
+<figure><h2>Vista desde arriba</h2><div class="svg"><svg role="img" aria-label="Vista desde arriba" preserveAspectRatio="xMinYMin meet" viewBox="0 0 512 302" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<desc>...</desc>
+	<clipPath id="clip-superior">
+		<rect x="0" y="0" width="512.0" height="302.0"/>
+	</clipPath>
+	<g id="group-superior" transform="scale(1,-1) translate(0,-302)" style="clip-path: url(#clip-superior)">
+		<g transform="">
+			<rect x="34.0" y="22.0" width="387.0" height="258.0" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(98%,98%,98%); fill-rule: evenodd;"/>
+			<text x="174.7825" y="9.0" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,18) scale(1,-1)">FRENTE (donde te parás vos)</text>
+			<text x="214.585" y="286.0" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,572) scale(1,-1)">ATRÁS</text>
+			<rect x="231.79999999999998" y="189.7" width="171.99999999999997" height="4.300000000000011" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="231.79999999999998" y="103.7" width="4.300000000000011" height="85.99999999999999" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="399.5" y="103.7" width="4.300000000000011" height="85.99999999999999" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<text x="315.273" y="198.0" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,396) scale(1,-1)">B</text>
+			<text x="231.423" y="94.7" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,189) scale(1,-1)">C</text>
+			<text x="399.123" y="94.7" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,189) scale(1,-1)">C</text>
+			<rect x="335.0" y="105.85" width="25.80000000000001" height="25.799999999999983" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 0.7; fill: none; fill-rule: evenodd; stroke-dasharray: 2, 1.5;"/>
+			<rect x="274.79999999999995" y="96.82" width="86.0" height="60.19999999999999" style="stroke: rgb(76%,25%,4%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="287.96399999999994" y="121.75999999999999" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.5px;fill: rgb(76%,25%,4%); stroke:none;" transform="translate(0,243) scale(1,-1)">CABINA</text>
+			<rect x="328.55" y="157.01999999999998" width="4.300000000000011" height="17.19999999999999" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,25%,4%); fill-rule: evenodd;"/>
+			<rect x="308.942" y="161.32" width="1.3759999999999764" height="5.160000000000025" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,9%,15%); fill-rule: evenodd;"/>
+			<rect x="325.28200000000004" y="161.32" width="1.3759999999999764" height="5.160000000000025" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,9%,15%); fill-rule: evenodd;"/>
+			<circle cx="268.78" cy="126.91999999999999" r="4.085" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<circle cx="268.78" cy="126.91999999999999" r="2.752" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(29%,33%,38%); fill-rule: evenodd;"/>
+			<circle cx="366.82" cy="126.91999999999999" r="4.085" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<circle cx="366.82" cy="126.91999999999999" r="2.752" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(29%,33%,38%); fill-rule: evenodd;"/>
+			<rect x="42.6" y="30.6" width="172.0" height="4.299999999999997" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="66.25" y="34.9" width="4.299999999999997" height="68.79999999999998" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<rect x="186.65" y="34.9" width="4.300000000000011" height="68.79999999999998" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.4; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<text x="97.6775" y="39.9" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,79) scale(1,-1)">Tablero E (parado)</text>
+			<text x="106.01764999999999" y="63.279999999999994" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,126) scale(1,-1)">F y F: triángulos</text>
+			<text x="105.6617" y="55.279999999999994" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,110) scale(1,-1)">que lo sostienen</text>
+			<rect x="51.2" y="211.2" width="87.71999999999998" height="45.579999999999984" style="stroke: rgb(14%,38%,92%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(74%,85%,99%); fill-rule: evenodd;"/>
+			<text x="71.72550000000001" y="231.83999999999997" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(14%,38%,92%); stroke:none;" transform="translate(0,463) scale(1,-1)">Arduino Mega</text>
+			<rect x="150.1" y="211.2" width="71.38000000000002" height="47.30000000000001" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="166.92849999999999" y="236.14" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,472) scale(1,-1)">Protoboard</text>
+			<text x="171.202" y="228.14" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,456) scale(1,-1)">principal</text>
+			<path d="M 403.8,65 L 421,65 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 403.8,62 L 403.8,68 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 421,62 L 421,68 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<text x="404.65139999999997" y="68.0" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,136) scale(1,-1)">2 cm</text>
+			<path d="M 412.4,194 L 412.4,280 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 409.4,194 L 415.4,194 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 409.4,280 L 415.4,280 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<text x="416.4" y="234.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,469) scale(1,-1)">10 cm</text>
+			<path d="M 231.8,219.8 L 403.8,219.8 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 231.8,216.8 L 231.8,222.8 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 403.8,216.8 L 403.8,222.8 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<text x="308.161" y="222.79999999999998" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,445) scale(1,-1)">20 cm</text>
+			<path d="M 223.2,103.7 L 223.2,194 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 220.2,103.7 L 226.2,103.7 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<path d="M 220.2,194 L 226.2,194 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6;"/>
+			<text x="194.2508" y="146.35" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,292) scale(1,-1)">10.5 cm</text>
+			<rect x="433.9" y="245.6" width="7.0" height="7.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<text x="444.9" y="246.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,493) scale(1,-1)">Guía de cobre + varilla</text>
+			<rect x="433.9" y="231.6" width="7.0" height="7.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,9%,15%); fill-rule: evenodd;"/>
+			<text x="444.9" y="232.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,465) scale(1,-1)">Faja (los dos lados)</text>
+			<rect x="433.9" y="217.6" width="7.0" height="7.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,25%,4%); fill-rule: evenodd;"/>
+			<text x="444.9" y="218.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,437) scale(1,-1)">Pestaña J</text>
+			<rect x="433.9" y="203.6" width="7.0" height="7.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<text x="444.9" y="204.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,409) scale(1,-1)">Final de abajo (debajo de</text>
+			<text x="444.9" y="195.6" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,391) scale(1,-1)">la cabina, punteado)</text>
+		</g>
+	</g>
+</svg>
+</div><figcaption>Dónde va cada cosa sobre la base. El frente es el lado de abajo del dibujo.</figcaption></figure>
+<figure><h2>La cabina desde arriba</h2><div class="svg"><svg role="img" aria-label="La cabina desde arriba" preserveAspectRatio="xMinYMin meet" viewBox="0 0 512 228" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<desc>...</desc>
+	<clipPath id="clip-cabina">
+		<rect x="0" y="0" width="512.0" height="228.89999999999998"/>
+	</clipPath>
+	<g id="group-cabina" transform="scale(1,-1) translate(0,-228)" style="clip-path: url(#clip-cabina)">
+		<g transform="">
+			<rect x="58" y="203" width="238" height="8.5" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.6; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<text x="141.223" y="215.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,431) scale(1,-1)">PANEL TRASERO (B)</text>
+			<rect x="92" y="19.399999999999988" width="170" height="119.00000000000001" style="stroke: rgb(76%,25%,4%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,94%,87%); fill-rule: evenodd;"/>
+			<rect x="92" y="129.9" width="170" height="8.5" style="stroke: rgb(76%,25%,4%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<rect x="92" y="19.399999999999988" width="8.5" height="119.00000000000001" style="stroke: rgb(76%,25%,4%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<rect x="253.5" y="19.399999999999988" width="8.5" height="119.00000000000001" style="stroke: rgb(76%,25%,4%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="123.656" y="67" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(76%,25%,4%); stroke:none;" transform="translate(0,134) scale(1,-1)">CABINA (vista desde arriba)</text>
+			<text x="156.378" y="56" style="font-family: Helvetica, Arial, sans-serif; font-size: 7px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,112) scale(1,-1)">frente abierto</text>
+			<rect x="198.25" y="138.4" width="8.5" height="34.0" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,25%,4%); fill-rule: evenodd;"/>
+			<rect x="159.32" y="146.9" width="3.0600000000000023" height="10.199999999999989" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,9%,15%); fill-rule: evenodd;"/>
+			<rect x="191.62" y="146.9" width="3.0600000000000023" height="10.199999999999989" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(6%,9%,15%); fill-rule: evenodd;"/>
+			<rect x="189.24" y="139.25" width="21.75999999999999" height="25.5" style="stroke: rgb(6%,9%,15%); stroke-linecap: butt; stroke-width: 2; fill: none; fill-rule: evenodd;"/>
+			<circle cx="80.1" cy="78.9" r="8.075" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<circle cx="80.1" cy="78.9" r="5.44" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(29%,33%,38%); fill-rule: evenodd;"/>
+			<circle cx="273.9" cy="78.9" r="8.075" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(76%,43%,16%); fill-rule: evenodd;"/>
+			<circle cx="273.9" cy="78.9" r="5.44" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(29%,33%,38%); fill-rule: evenodd;"/>
+			<path d="M 63.1,203 L 63.1,152 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 60.1,203 L 66.1,203 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 60.1,152 L 66.1,152 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<text x="53.0975" y="174.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,349) scale(1,-1)">X</text>
+			<path d="M 63.1,152 L 63.1,138.4 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 60.1,152 L 66.1,152 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<path d="M 60.1,138.4 L 66.1,138.4 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7;"/>
+			<text x="34.7525" y="142.2" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(91%,34%,4%); stroke:none;" transform="translate(0,284) scale(1,-1)">0.8 cm</text>
+			<path d="M 63.1,152 L 160.85,152 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.4; stroke-dasharray: 2, 2;"/>
+			<text x="306.2" y="180.10000000000002" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.4px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,360) scale(1,-1)">Faja, lado izquierdo: pasa libre</text>
+			<path d="M 303.2,182.6 L 160.85,152 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="160.85" cy="152.0" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="306.2" y="159.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.4px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,319) scale(1,-1)">Faja, lado derecho: va enganchado</text>
+			<path d="M 303.2,162.2 L 193.15,155.4 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="193.15" cy="155.39999999999998" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="306.2" y="139.3" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.4px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,278) scale(1,-1)">Clip: aprieta faja + pestaña</text>
+			<path d="M 303.2,141.8 L 209.3,143.5 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="209.3" cy="143.5" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="306.2" y="118.9" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.4px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,237) scale(1,-1)">Pestaña J (pegada a la cabina)</text>
+			<path d="M 303.2,121.4 L 206.75,165.6 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="206.75" cy="165.60000000000002" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+			<text x="306.2" y="76.4" style="font-family: Helvetica, Arial, sans-serif; font-size: 7.4px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,152) scale(1,-1)">Guía de cobre con la varilla adentro</text>
+			<path d="M 303.2,78.9 L 282.4,78.9 Z" style="stroke: rgb(41%,44%,50%); stroke-linecap: butt; stroke-width: 0.5;"/>
+			<circle cx="282.4" cy="78.9" r="1.3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(41%,44%,50%); fill-rule: evenodd;"/>
+		</g>
+	</g>
+</svg>
+</div><figcaption>Dentro de la torre. X es la distancia del panel B a los dientes de la polea (unos 3 cm).</figcaption></figure>
+<figure><h2>Plantilla de cortes</h2><div class="svg"><svg role="img" aria-label="Plantilla de cortes" preserveAspectRatio="xMinYMin meet" viewBox="0 0 512 192" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<desc>...</desc>
+	<clipPath id="clip-cortes">
+		<rect x="0" y="0" width="512.0" height="192.5"/>
+	</clipPath>
+	<g id="group-cortes" transform="scale(1,-1) translate(0,-192)" style="clip-path: url(#clip-cortes)">
+		<g transform="">
+			<rect x="0" y="8" width="213.5" height="152.5" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="0" y="167.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8.5px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,335) scale(1,-1)">Pliego 1</text>
+			<rect x="0.0" y="69.0" width="137.25" height="91.5" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="65.376" y="115.75" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,231) scale(1,-1)">A</text>
+			<text x="58.293" y="105.75" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,211) scale(1,-1)">45 x 30</text>
+			<rect x="138.775" y="14.1" width="61.0" height="146.39999999999998" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="166.02599999999998" y="88.3" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,176) scale(1,-1)">B</text>
+			<text x="158.94299999999998" y="78.3" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,156) scale(1,-1)">20 x 48</text>
+			<rect x="0.0" y="36.365" width="62.525" height="32.025" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="28.0135" y="53.3775" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,106) scale(1,-1)">D</text>
+			<text x="15.676299999999998" y="43.3775" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,86) scale(1,-1)">20.5 x 10.5</text>
+			<rect x="64.05" y="36.974999999999994" width="61.0" height="30.5" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="91.54849999999999" y="53.224999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,106) scale(1,-1)">E</text>
+			<text x="84.21799999999999" y="43.224999999999994" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,86) scale(1,-1)">20 x 10</text>
+			<rect x="0.0" y="11.05" width="30.5" height="21.349999999999998" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="11.748999999999999" y="22.725" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,45) scale(1,-1)">G</text>
+			<text x="15.25" y="12.725000000000001" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,25) scale(1,-1)"></text>
+			<rect x="32.025" y="11.05" width="30.5" height="21.349999999999998" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="43.774" y="22.725" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,45) scale(1,-1)">G</text>
+			<text x="47.275" y="12.725000000000001" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,25) scale(1,-1)"></text>
+			<rect x="64.05" y="11.05" width="27.450000000000003" height="15.25" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="75.32019999999999" y="16.174999999999997" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,32) scale(1,-1)">H</text>
+			<rect x="93.02499999999999" y="11.05" width="21.349999999999994" height="15.25" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="102.75479999999999" y="16.174999999999997" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,32) scale(1,-1)">I</text>
+			<rect x="115.89999999999999" y="11.05" width="21.35000000000001" height="15.25" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="125.62979999999999" y="16.174999999999997" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,32) scale(1,-1)">I</text>
+			<rect x="247.5" y="8" width="213.5" height="152.5" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="247.5" y="167.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8.5px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,335) scale(1,-1)">Pliego 2</text>
+			<rect x="247.5" y="69.0" width="137.25" height="91.5" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="312.876" y="115.75" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,231) scale(1,-1)">A</text>
+			<text x="305.793" y="105.75" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,211) scale(1,-1)">45 x 30</text>
+			<rect x="386.275" y="11.05" width="30.5" height="146.39999999999998" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="398.27599999999995" y="85.25" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,170) scale(1,-1)">C</text>
+			<text x="391.193" y="75.25" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,150) scale(1,-1)">10 x 48</text>
+			<rect x="418.29999999999995" y="11.05" width="30.5" height="146.39999999999998" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="430.30099999999993" y="85.25" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,170) scale(1,-1)">C</text>
+			<text x="423.21799999999996" y="75.25" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,150) scale(1,-1)">10 x 48</text>
+			<rect x="247.5" y="41.55" width="24.399999999999977" height="24.39999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="256.9505" y="54.75" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,109) scale(1,-1)">F</text>
+			<text x="259.7" y="44.75" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,89) scale(1,-1)"></text>
+			<rect x="274.95" y="53.75" width="6.100000000000023" height="10.674999999999997" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,84%,66%); fill-rule: evenodd;"/>
+			<text x="276.1096" y="56.5875" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,113) scale(1,-1)">J</text>
+			<rect x="284.1" y="50.699999999999996" width="18.30000000000001" height="6.100000000000001" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="291.1726" y="51.25" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,102) scale(1,-1)">L</text>
+			<rect x="247.5" y="11.05" width="12.199999999999989" height="7.625" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="250.7678" y="12.3625" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,24) scale(1,-1)">M</text>
+			<rect x="261.53" y="11.05" width="12.199999999999989" height="7.625" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="264.7978" y="12.3625" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,24) scale(1,-1)">M</text>
+			<rect x="275.56" y="11.05" width="12.199999999999989" height="7.625" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="278.82779999999997" y="12.3625" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,24) scale(1,-1)">M</text>
+			<rect x="289.59" y="11.05" width="12.199999999999989" height="7.625" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="292.8578" y="12.3625" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,24) scale(1,-1)">M</text>
+			<rect x="247.5" y="21.725" width="45.75" height="15.25" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="267.126" y="30.349999999999998" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 9px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,60) scale(1,-1)">N</text>
+			<text x="261.7944" y="20.349999999999998" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.3px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,40) scale(1,-1)">15 x 5</text>
+			<rect x="305.45" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="307.5702" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="316.125" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="318.2452" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="326.8" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="328.9202" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="337.475" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="339.59520000000003" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="348.15" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="350.27020000000005" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="358.825" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="360.9452" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="369.5" y="55.275" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="371.6202" y="57.349999999999994" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,114) scale(1,-1)">K</text>
+			<rect x="305.45" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="307.5702" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="316.125" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="318.2452" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="326.8" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="328.9202" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="337.475" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="339.59520000000003" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="348.15" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="350.27020000000005" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="358.825" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="360.9452" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="369.5" y="43.074999999999996" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="371.6202" y="45.15" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,90) scale(1,-1)">K</text>
+			<rect x="305.45" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="307.5702" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<rect x="316.125" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="318.2452" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<rect x="326.8" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="328.9202" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<rect x="337.475" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="339.59520000000003" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<rect x="348.15" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="350.27020000000005" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<rect x="358.825" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="360.9452" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<rect x="369.5" y="30.875" width="9.149999999999977" height="9.149999999999999" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(95%,95%,96%); fill-rule: evenodd;"/>
+			<text x="371.6202" y="32.95" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 6.8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,65) scale(1,-1)">K</text>
+			<path d="M 247.5,41.55 L 271.9,65.95 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.6; stroke-dasharray: 2, 1.5;"/>
+		</g>
+	</g>
+</svg>
+</div><figcaption>Cómo acomodar las piezas en los dos pliegos de cartón pluma. La repisa L ya va corregida a 6 × 2 cm.</figcaption></figure>
+<figure><h2>Cómo se pone un botón en la protoboard</h2><div class="svg"><svg role="img" aria-label="Cómo se pone un botón en la protoboard" preserveAspectRatio="xMinYMin meet" viewBox="0 0 512 229" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	
+	<desc>...</desc>
+	<clipPath id="clip-boton">
+		<rect x="0" y="0" width="512.0" height="229"/>
+	</clipPath>
+	<g id="group-boton" transform="scale(1,-1) translate(0,-229)" style="clip-path: url(#clip-boton)">
+		<g transform="">
+			<rect x="19.6" y="32.6" width="163.79999999999998" height="163.79999999999998" style="stroke: rgb(61%,63%,68%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(98%,98%,98%); fill-rule: evenodd;"/>
+			<rect x="19.6" y="98.25" width="163.79999999999998" height="19.5" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(89%,90%,92%); fill-rule: evenodd;"/>
+			<text x="74.22274999999999" y="104.75" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.5px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,209) scale(1,-1)">canaleta del medio</text>
+			<rect x="28.4" y="184.4" width="3.1999999999999993" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="171.4" width="3.1999999999999993" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="158.4" width="3.1999999999999993" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="145.4" width="3.1999999999999993" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="132.4" width="3.1999999999999993" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="93.4" width="3.1999999999999993" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="80.4" width="3.1999999999999993" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="67.4" width="3.1999999999999993" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="54.4" width="3.1999999999999993" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="28.4" y="41.4" width="3.1999999999999993" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="41.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="54.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="67.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="80.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="93.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="106.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="184.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="171.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="158.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="145.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="132.4" width="3.200000000000003" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="93.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="80.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="67.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="54.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="119.4" y="41.4" width="3.200000000000003" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="184.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="171.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="158.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="145.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="132.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="93.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="80.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="67.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="54.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="132.4" y="41.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="184.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="171.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="158.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="145.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="132.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="93.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="80.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="67.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="54.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="145.4" y="41.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="184.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="171.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="158.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="145.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="132.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="93.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="80.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="67.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="54.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="158.4" y="41.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="184.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="171.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="158.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="145.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="132.4" width="3.1999999999999886" height="3.1999999999999886" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="93.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="80.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="67.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="54.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<rect x="171.4" y="41.4" width="3.1999999999999886" height="3.200000000000003" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(61%,63%,68%); fill-rule: evenodd;"/>
+			<text x="11.376399999999997" y="183.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,367) scale(1,-1)">a</text>
+			<text x="11.376399999999997" y="170.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,341) scale(1,-1)">b</text>
+			<text x="11.549999999999997" y="157.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,315) scale(1,-1)">c</text>
+			<text x="11.376399999999997" y="144.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,289) scale(1,-1)">d</text>
+			<text x="11.376399999999997" y="131.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,263) scale(1,-1)">e</text>
+			<text x="12.238199999999997" y="92.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,185) scale(1,-1)">f</text>
+			<text x="11.376399999999997" y="79.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,159) scale(1,-1)">g</text>
+			<text x="11.376399999999997" y="66.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,133) scale(1,-1)">h</text>
+			<text x="12.411799999999998" y="53.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,107) scale(1,-1)">i</text>
+			<text x="12.411799999999998" y="40.7" style="font-family: Helvetica, Arial, sans-serif; font-size: 6.2px;fill: rgb(41%,44%,50%); stroke:none;" transform="translate(0,81) scale(1,-1)">j</text>
+			<rect x="64.45" y="83.95" width="61.10000000000001" height="61.10000000000001" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(21%,25%,31%); fill-rule: evenodd;"/>
+			<circle cx="95" cy="114.5" r="20.8" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(14%,38%,92%); fill-rule: evenodd;"/>
+			<circle cx="82" cy="147" r="2.6" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(81%,83%,85%); fill-rule: evenodd;"/>
+			<circle cx="108" cy="147" r="2.6" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(81%,83%,85%); fill-rule: evenodd;"/>
+			<circle cx="82" cy="82" r="2.6" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(81%,83%,85%); fill-rule: evenodd;"/>
+			<circle cx="108" cy="82" r="2.6" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(81%,83%,85%); fill-rule: evenodd;"/>
+			<circle cx="82" cy="147" r="5.5" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 1.6; fill: none; fill-rule: evenodd;"/>
+			<circle cx="108" cy="82" r="5.5" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 1.6; fill: none; fill-rule: evenodd;"/>
+			<path d="M 82,153 L 108,76 Z" style="stroke: rgb(91%,34%,4%); stroke-linecap: butt; stroke-width: 0.8; stroke-dasharray: 2, 2;"/>
+			<path d="M 82,186 L 82,214.6 Z" style="stroke: rgb(86%,14%,14%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<circle cx="82" cy="186" r="3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(86%,14%,14%); fill-rule: evenodd;"/>
+			<text x="87" y="206.8" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(86%,14%,14%); stroke:none;" transform="translate(0,413) scale(1,-1)">SEÑAL  (al pin del Mega)</text>
+			<path d="M 108,43 L 108,17 Z" style="stroke: rgb(12%,16%,21%); stroke-linecap: butt; stroke-width: 2.4;"/>
+			<circle cx="108" cy="43" r="3" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,16%,21%); fill-rule: evenodd;"/>
+			<text x="113" y="20.900000000000002" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 7.5px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,41) scale(1,-1)">GND  (a la fila azul de tierra)</text>
+			<text x="206.79999999999998" y="179.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,359) scale(1,-1)">1. El botón va montado sobre la canaleta,</text>
+			<text x="206.79999999999998" y="168.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,337) scale(1,-1)">   con dos patas arriba y dos abajo.</text>
+			<text x="206.79999999999998" y="157.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,315) scale(1,-1)"></text>
+			<text x="206.79999999999998" y="146.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,293) scale(1,-1)">2. SEÑAL: arriba de la canaleta, en la</text>
+			<text x="206.79999999999998" y="135.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,271) scale(1,-1)">   columna de la pata IZQUIERDA.</text>
+			<text x="206.79999999999998" y="124.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,249) scale(1,-1)"></text>
+			<text x="206.79999999999998" y="113.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,227) scale(1,-1)">3. GND: abajo de la canaleta, en la</text>
+			<text x="206.79999999999998" y="102.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,205) scale(1,-1)">   columna de la pata DERECHA.</text>
+			<text x="206.79999999999998" y="91.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,183) scale(1,-1)"></text>
+			<text x="206.79999999999998" y="80.5" style="font-family: Helvetica, Arial, sans-serif; font-weight:700; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,161) scale(1,-1)">4. Siempre en diagonal. Así funciona</text>
+			<text x="206.79999999999998" y="69.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,139) scale(1,-1)">   sin importar cómo esté hecho el</text>
+			<text x="206.79999999999998" y="58.5" style="font-family: Helvetica, Arial, sans-serif; font-size: 8px;fill: rgb(12%,16%,21%); stroke:none;" transform="translate(0,117) scale(1,-1)">   botón por dentro.</text>
+		</g>
+	</g>
+</svg>
+</div><figcaption>La regla de la diagonal: vale para los 13 botones del proyecto, incluidos los dos finales de carrera.</figcaption></figure>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+if (!window.THREE || !THREE.OrbitControls) { $('#loading').textContent = 'No se pudo cargar el visor 3D. Revisá tu conexión y recargá la página.'; return; }
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+function applyBg(){ scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#dfe5e1'); }
+applyBg(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyBg);
+const camera = new THREE.PerspectiveCamera(36, 1, .3, 1200);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .08; controls.minDistance = 5; controls.maxDistance = 260; controls.maxPolarAngle = Math.PI * .49;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x40524b, .8));
+const sun = new THREE.DirectionalLight(0xffffff, .85); sun.position.set(45, 85, 60); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-55, right:55, top:65, bottom:-45, near:10, far:260}); sun.shadow.bias = -.0006; scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, .35); fill.position.set(-60, 35, -45); scene.add(fill);
+
+/* ---------- utilidades (1 unidad = 1 cm) ----------
+   x: 0..45 de izquierda a derecha de la base
+   h: altura sobre la base
+   d: 0 (frente) .. 30 (atrás) */
+const X = x => x - 22.5, Z = d => 15 - d;
+const std = (c, r, m) => new THREE.MeshStandardMaterial({color:c, roughness:r, metalness:m || 0});
+const M = {
+  foam: std(0xf4f4f0, .92), foam2: std(0xe9e9e4, .92),
+  rod: std(0x7d848b, .32, .9), steel: std(0xbfc4c9, .3, .9), copper: std(0xc4722c, .32, .85),
+  alu: std(0xd3d7db, .28, .85), belt: std(0x202023, .85), motor: std(0xb3bbc2, .38, .75),
+  motorCap: std(0x2e63c8, .55), pcbBlue: std(0x1a5ea8, .55), pcbGreen: std(0x1f6a3b, .6),
+  black: std(0x1c1c1e, .55), white: std(0xf7f7f4, .7), cabin: std(0xfccf9c, .85), cabinIn: std(0xfff0dd, .9),
+  clip: std(0x141416, .35, .6), silicone: new THREE.MeshStandardMaterial({color:0xffffff, roughness:.2, transparent:true, opacity:.55}),
+  btnBody: std(0x2a2a2d, .5), term: std(0x2f8a4e, .6), cream: std(0xfff7e8, .8), marker: std(0x222222, .8), red: std(0xd33a2c, .5)
+};
+const shadow = m => { m.castShadow = true; m.receiveShadow = true; return m; };
+function box(x1, x2, h1, h2, d1, d2, mat, info, parent){
+  const m = shadow(new THREE.Mesh(new THREE.BoxGeometry(x2 - x1, h2 - h1, d2 - d1), mat));
+  m.position.set(X((x1 + x2) / 2), (h1 + h2) / 2, Z((d1 + d2) / 2));
+  if (info) m.userData.info = info;
+  (parent || scene).add(m); return m;
+}
+function cylY(x, d, h1, h2, r, mat, info, parent, seg){
+  const m = shadow(new THREE.Mesh(new THREE.CylinderGeometry(r, r, h2 - h1, seg || 24), mat));
+  m.position.set(X(x), (h1 + h2) / 2, Z(d));
+  if (info) m.userData.info = info;
+  (parent || scene).add(m); return m;
+}
+function cylZ(x, h, d1, d2, r, mat, info, parent, seg){
+  const g = new THREE.CylinderGeometry(r, r, d2 - d1, seg || 28); g.rotateX(Math.PI / 2);
+  const m = shadow(new THREE.Mesh(g, mat));
+  m.position.set(X(x), h, Z((d1 + d2) / 2));
+  if (info) m.userData.info = info;
+  (parent || scene).add(m); return m;
+}
+function canvasTex(w, h, draw){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  t.userData = {canvas:c, ctx:g};
+  return t;
+}
+const FONT = "'Bricolage Grotesque', system-ui, sans-serif";
+
+function pbTex(wcm, hcm, o){
+  o = o || {};
+  const k = 48;
+  return canvasTex(Math.round(wcm * k), Math.round(hcm * k), (g, w, h) => {
+    g.fillStyle = '#f8f8f5'; g.fillRect(0, 0, w, h);
+    const p = 0.254 * k;
+    g.fillStyle = '#e2e2dc'; g.fillRect(0, h / 2 - .12 * k, w, .24 * k);
+    g.fillStyle = '#4a4a4a';
+    const hole = (x, y) => g.fillRect(x - 1.7, y - 1.7, 3.4, 3.4);
+    const cols = Math.floor((w - .3 * k) / p);
+    const x0 = (w - cols * p) / 2 + p / 2;
+    for (let i = 0; i < cols; i++) for (let r = 0; r < 5; r++) {
+      hole(x0 + i * p, h / 2 - .3 * k - r * p); hole(x0 + i * p, h / 2 + .3 * k + r * p);
+    }
+    if (o.rails) {
+      [[.18, '#d33a2c'], [h / k - .18, '#2563eb']].forEach(([yc, col]) => {
+        const y = yc * k;
+        g.fillStyle = col; g.fillRect(.2 * k, y - (yc < 1 ? -.02 : .02) * k - 1, w - .4 * k, 2);
+      });
+      g.fillStyle = '#4a4a4a';
+      for (let i = 0; i < cols; i += 1) { if (i % 6 === 5) continue; hole(x0 + i * p, .4 * k); hole(x0 + i * p, .4 * k + p); hole(x0 + i * p, h - .4 * k); hole(x0 + i * p, h - .4 * k - p); }
+    }
+    if (o.draw) o.draw(g, k, w, h);
+  });
+}
+
+
+M.tower = std(0xf4f4f0, .92);
+
+/* ---------- la maqueta ---------- */
+const I = (t, d) => ({t, d});
+const INFO = {
+  base: I('Base A', 'Dos piezas de 45 × 30 cm pegadas una encima de otra: queda de 1 cm de grueso.'),
+  B: I('Panel trasero B', '20 × 48 cm. La línea del centro guía el motor, las dos poleas y la faja.'),
+  C: I('Lateral C', '10 × 48 cm. En el derecho van por fuera los botones de pasillo y las etiquetas de piso.'),
+  D: I('Techo D', '20.5 × 10.5 cm. Las dos varillas lo atraviesan.'),
+  E: I('Tablero E', '20 × 10 cm, parado en la esquina de adelante. Tiene la ventana del LCD y los botones de cabina.'),
+  F: I('Escuadra F', 'Triángulo de 8 × 8 cm que sostiene el tablero por detrás.'),
+  rod: I('Varilla de hierro liso 1/4"', 'Tramo de 50 cm, lijado con grano 400. Es el riel: la cabina desliza por ella.'),
+  guide: I('Guía de cobre 3/8"', 'Pedazo de 3 cm pegado al costado de la cabina. La varilla pasa por dentro.'),
+  cabin: I('Cabina (G, H, I)', 'Cajita de 10 × 7 × 6 cm con el frente abierto.'),
+  J: I('Pestaña J', '2 × 3.5 cm, pegada atrás de la cabina. Aquí se engancha la faja.'),
+  clip: I('Clip binder de 19 mm', 'Aprieta el lado derecho de la faja contra la pestaña J. Así la faja arrastra la cabina.'),
+  belt: I('Faja GT2 de 852 mm', 'Lazo cerrado de 6 mm de ancho. Solo el lado derecho va enganchado a la cabina.'),
+  pulleyTop: I('Polea GT2 de 30 dientes (arriba)', 'Fija al eje del motor con sus dos tornillitos, a 1 mm del motor.'),
+  pulleyBot: I('Polea GT2 de 30 dientes (abajo)', 'Sin tornillitos: gira libre sobre el tornillo M5 con una gota de aceite.'),
+  bolt: I('Tornillo M5 con 3 tuercas', 'La tuerca 2 ajusta la distancia para que las dos poleas queden en el mismo plano.'),
+  K: I('Cuadritos K', '3 × 3 cm. Refuerzan el cartón donde entra el tornillo.'),
+  motor: I('Motor 28BYJ-48 de 5 V', 'Eje a 44 cm de la base, sobre la línea del centro de B.'),
+  L: I('Repisa L', 'El motor se sienta sobre ella. Solo debe sobresalir 2 cm de B para no rozar la faja.'),
+  driver: I('Driver ULN2003', 'Pegado atrás de B por las esquinas. Se alimenta con la fuente de 5 V, nunca con la de 9 V.'),
+  lowSw: I('Final de carrera de abajo', 'Torrecita de 8 cuadritos K con un botón. El tacón de la cabina lo aprieta en el piso 1 (pin 35).'),
+  topSw: I('Final de carrera de arriba', 'Cuelga del techo con 2 cuadritos K. El tacón del techo de la cabina lo aprieta en el piso 4 (pin 36).'),
+  label: I('Etiqueta de piso M', '4 × 2.5 cm, pegada sobre la línea de marcador de cada piso.'),
+  lcd: I('LCD 16x2 con módulo I2C', 'Pines 20 (SDA) y 21 (SCL). Muestra piso, dirección, modo y pisos recorridos.'),
+  pbCab: I('Protoboard de los botones de cabina', 'Destinos 1 a 4 (pines 30 a 33) y MODO (pin 34).'),
+  mega: I('Arduino Mega 2560', 'Se alimenta por USB o con el adaptador Elegoo de 9 V en su jack.'),
+  pbMain: I('Protoboard principal', 'La fila azul es la tierra común (GND) de los 13 botones.'),
+  psu: I('Fuente de 5 V 2 A con bornera', 'Alimenta solo al driver del motor. Su negativo va también a la fila GND.'),
+  adapter: I('Adaptador Elegoo de 9 V', 'Va solo al jack del Mega. Nunca al driver del motor.'),
+  wire: I('Jumper', 'Todos los botones van con la señal y el GND en diagonal.'),
+  tacon: I('Tacón de 1 × 1 × 2 cm', 'Bloquecito de cartón pluma pegado a la cabina justo sobre el botón. Aprieta el botón y deja 2 cm libres para los jumpers.')
+};
+
+function build(){
+  // tapete de corte
+  const matTex = canvasTex(1080, 780, (g, w, h) => {
+    const k = 12;
+    g.fillStyle = '#2d5b4d'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i <= 90; i++) { g.strokeStyle = i % 10 === 0 ? 'rgba(255,255,255,.34)' : i % 5 === 0 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.07)'; g.lineWidth = i % 10 === 0 ? 2 : 1; g.beginPath(); g.moveTo(i * k + .5, 0); g.lineTo(i * k + .5, h); g.stroke(); }
+    for (let j = 0; j <= 65; j++) { g.strokeStyle = j % 10 === 0 ? 'rgba(255,255,255,.34)' : j % 5 === 0 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.07)'; g.lineWidth = j % 10 === 0 ? 2 : 1; g.beginPath(); g.moveTo(0, j * k + .5); g.lineTo(w, j * k + .5); g.stroke(); }
+    g.strokeStyle = 'rgba(255,214,102,.28)'; g.lineWidth = 1.5;
+    for (let a = -h; a < w; a += 240) { g.beginPath(); g.moveTo(a, h); g.lineTo(a + h, 0); g.stroke(); }
+  });
+  const matSide = std(0x24493e, .9);
+  const mat = new THREE.Mesh(new THREE.BoxGeometry(90, .3, 65), [matSide, matSide, new THREE.MeshStandardMaterial({map:matTex, roughness:.95}), matSide, matSide, matSide]);
+  mat.position.set(0, -1.15, 1); mat.receiveShadow = true; scene.add(mat);
+
+  // base doble
+  box(0, 45, -1, -.5, 0, 30, M.foam2, INFO.base);
+  box(0, 45, -.5, 0, 0, 30, M.foam, INFO.base);
+
+  // torre en U
+  box(23, 43, 0, 48, 19.5, 20, M.tower, INFO.B);
+  box(23, 23.5, 0, 48, 9.5, 19.5, M.tower, INFO.C);
+  box(42.5, 43, 0, 48, 9.5, 19.5, M.tower, INFO.C);
+  box(22.75, 43.25, 48, 48.5, 9.5, 20, M.tower, INFO.D);
+  // línea del centro a lápiz
+  box(32.97, 33.03, 1, 47.5, 19.49, 19.5, std(0x9aa0a6, .9), INFO.B);
+
+  // varillas
+  [27.3, 38.7].forEach(x => cylY(x, 12.2, -.6, 49.2, .3175, M.rod, INFO.rod));
+
+  // motor + repisa + polea de arriba
+  box(30, 36, 41.3, 41.8, 17.5, 19.5, M.foam2, INFO.L);
+  cylZ(33, 43.2, 17.6, 19.2, 1.4, M.motor, INFO.motor, null, 40);
+  cylZ(33, 43.2, 19.2, 19.5, 1.42, M.motorCap, INFO.motor, null, 40);
+  box(29.8, 36.2, 42.85, 43.55, 17.55, 17.65, M.motor, INFO.motor);
+  cylZ(33, 44, 17.3, 17.6, .45, M.motor, INFO.motor);
+  cylZ(33, 44, 16, 17.3, .25, std(0xc9a44a, .35, .8), INFO.motor);
+
+  const pulleyTop = makePulley(44, true, INFO.pulleyTop);
+  const pulleyBot = makePulley(4.4, false, INFO.pulleyBot);
+
+  // tornillo de abajo
+  cylZ(33, 4.4, 15.55, 20.6, .25, M.steel, INFO.bolt);
+  hexNut(20.6, 20.95, .48, INFO.bolt); hexNut(18.5, 18.9, .45, INFO.bolt); hexNut(17.55, 17.95, .45, INFO.bolt); hexNut(15.6, 16.0, .45, INFO.bolt);
+  cylZ(33, 4.4, 18.9, 19.0, .55, M.steel, INFO.bolt); cylZ(33, 4.4, 20.5, 20.6, .55, M.steel, INFO.bolt);
+  box(31.5, 34.5, 2.9, 5.9, 19, 19.5, M.foam2, INFO.K);
+  box(31.5, 34.5, 2.9, 5.9, 20, 20.5, M.foam2, INFO.K);
+
+  // faja
+  const beltTex = () => { const t = canvasTex(16, 32, (g) => { g.fillStyle = '#232326'; g.fillRect(0, 0, 16, 32); g.fillStyle = '#3d3d42'; g.fillRect(0, 0, 16, 7); }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 39.6 / 0.2); return t; };
+  const texL = beltTex(), texR = beltTex();
+  const strand = (x, tex) => box(x - .075, x + .075, 4.4, 44, 16.2, 16.8, new THREE.MeshStandardMaterial({map:tex, roughness:.85}), INFO.belt);
+  strand(32.045, texL); strand(33.955, texR);
+  [[44, Math.PI / 2], [4.4, -Math.PI / 2]].forEach(([h, t0]) => {
+    const g = new THREE.CylinderGeometry(1.03, 1.03, .6, 32, 1, true, t0, Math.PI); g.rotateX(Math.PI / 2);
+    const m = shadow(new THREE.Mesh(g, new THREE.MeshStandardMaterial({color:0x202023, roughness:.85, side:THREE.DoubleSide})));
+    m.position.set(X(33), h, Z(16.5)); m.userData.info = INFO.belt; scene.add(m);
+  });
+
+  // cabina
+  const cabinG = new THREE.Group(); scene.add(cabinG);
+  const C0 = 7.6;
+  box(28, 38, C0, C0 + .5, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(28, 38, C0 + 5.5, C0 + 6, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(28, 28.5, C0 + .5, C0 + 5.5, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(37.5, 38, C0 + .5, C0 + 5.5, 8.7, 15.7, M.cabin, INFO.cabin, cabinG);
+  box(28.5, 37.5, C0 + .5, C0 + 5.5, 15.2, 15.7, M.cabinIn, INFO.cabin, cabinG);
+  box(28.5, 37.5, C0 + .5, C0 + .52, 8.7, 15.2, M.cabinIn, INFO.cabin, cabinG);
+  [27.3, 38.7].forEach(x => {
+    cylY(x, 12.2, C0, C0 + 2.97, .476, M.copper, INFO.guide, cabinG);
+    cylY(x, 12.2, C0 + 3.03, C0 + 6, .476, M.copper, INFO.guide, cabinG);
+    const sx = x < 30 ? [27.72, 28] : [38, 38.28];
+    box(sx[0], sx[1], C0 + .3, C0 + 5.7, 11.9, 12.5, M.silicone, INFO.guide, cabinG);
+  });
+  box(34.25, 34.75, C0 + 1.25, C0 + 4.75, 15.7, 17.7, M.cabin, INFO.J, cabinG);
+  box(33.73, 33.83, C0 + 2, C0 + 4, 16.05, 17.9, M.clip, INFO.clip, cabinG);
+  box(34.77, 34.87, C0 + 2, C0 + 4, 16.05, 17.9, M.clip, INFO.clip, cabinG);
+  box(33.73, 34.87, C0 + 2, C0 + 4, 17.9, 18.0, M.clip, INFO.clip, cabinG);
+
+  // finales de carrera
+  for (let i = 0; i < 8; i++) box(35, 38, i * .5, i * .5 + .5, 9.75, 12.75, i % 2 ? M.foam : M.foam2, INFO.lowSw);
+  const pbMini = () => new THREE.MeshStandardMaterial({map:pbTex(3.4, 3.5), roughness:.7});
+  const lowPb = box(34.8, 38.2, 4, 4.85, 9.5, 13, [M.white, M.white, pbMini(), M.white, M.white, M.white], INFO.lowSw);
+  lowPb.material = [M.white, M.white, pbMini(), M.white, M.white, M.white];
+  for (let i = 0; i < 2; i++) box(35, 38, 47 + i * .5, 47.5 + i * .5, 9.75, 12.75, i % 2 ? M.foam : M.foam2, INFO.topSw);
+  const topPb = box(34.8, 38.2, 46.15, 47, 9.5, 13, M.white, INFO.topSw);
+  topPb.material = [M.white, M.white, M.white, pbMini(), M.white, M.white];
+  const swLow = makeButton(new THREE.Vector3(X(36.5), 4.85, Z(11.25)), 'y', 0xdddddd, {info:INFO.lowSw});
+  const swTop = makeButton(new THREE.Vector3(X(36.5), 46.15, Z(11.25)), '-y', 0xdddddd, {info:INFO.topSw});
+
+  // pisos: líneas, etiquetas, botones de pasillo
+  const hall = {up:[], dn:[]};
+  const PIN = {up:{1:22, 2:23, 3:25}, dn:{2:24, 3:26, 4:27}};
+  for (let n = 1; n <= 4; n++) {
+    const fy = 7.6 + 10 * (n - 1);
+    box(43, 43.04, fy - .05, fy + .05, 9.5, 19.5, M.marker, INFO.label);
+    const lt = canvasTex(400, 250, (g, w, h) => {
+      g.fillStyle = '#fffdf7'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#1b1b1b'; g.font = `800 120px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('PISO ' + n, w / 2, h / 2 + 6);
+    });
+    const lab = new THREE.Mesh(new THREE.PlaneGeometry(4, 2.5), new THREE.MeshStandardMaterial({map:lt, roughness:.8}));
+    lab.rotation.y = Math.PI / 2; lab.position.set(X(43.06), fy + 1.65, Z(11.9)); lab.userData.info = INFO.label; lab.receiveShadow = true; scene.add(lab);
+    const pb = box(43.06, 43.9, fy + .4, fy + 3.9, 14.4, 19, M.white, I('Botones de pasillo del piso ' + n, 'Mini protoboard pegada por fuera del lateral derecho, justo arriba de la línea del piso.'));
+    pb.material = [new THREE.MeshStandardMaterial({map:pbTex(4.6, 3.5), roughness:.7}), M.white, M.white, M.white, M.white, M.white];
+    const slots = n === 1 ? [['up', 16.7]] : n === 4 ? [['dn', 16.7]] : [['up', 15.6], ['dn', 17.8]];
+    slots.forEach(([type, d]) => {
+      const info = I(`Piso ${n}, ${type === 'up' ? 'subir' : 'bajar'}`, `Pin ${PIN[type][n]} del Mega. Tocalo para llamar al ascensor.`);
+      hall[type][n] = makeButton(new THREE.Vector3(X(43.9), fy + 2.15, Z(d)), 'x', type === 'up' ? 0x1f9d55 : 0xd42f2f, {press:{type, f:n}, info});
+      arrow(43.92, fy + 3.45, d, type === 'up');
+    });
+  }
+
+  // tablero
+  const shp = new THREE.Shape(); shp.moveTo(0, 0); shp.lineTo(20, 0); shp.lineTo(20, 10); shp.lineTo(0, 10); shp.lineTo(0, 0);
+  const holeP = new THREE.Path(); holeP.moveTo(6.4, 5.9); holeP.lineTo(13.6, 5.9); holeP.lineTo(13.6, 8.5); holeP.lineTo(6.4, 8.5); holeP.lineTo(6.4, 5.9); shp.holes.push(holeP);
+  const eMesh = shadow(new THREE.Mesh(new THREE.ExtrudeGeometry(shp, {depth:.5, bevelEnabled:false}), M.foam));
+  eMesh.position.set(X(1), 0, Z(1.5)); eMesh.userData.info = INFO.E; scene.add(eMesh);
+  const tri = new THREE.Shape(); tri.moveTo(0, 0); tri.lineTo(8, 0); tri.lineTo(0, 8); tri.lineTo(0, 0);
+  [3.75, 17.75].forEach(x => { const m = shadow(new THREE.Mesh(new THREE.ExtrudeGeometry(tri, {depth:.5, bevelEnabled:false}), M.foam2)); m.rotation.y = Math.PI / 2; m.position.set(X(x), 0, Z(1.5)); m.userData.info = INFO.F; scene.add(m); });
+  box(6.6, 15.4, 5.4, 9.0, 1.5, 1.66, M.pcbGreen, INFO.lcd);
+  box(7.1, 14.9, 5.65, 8.75, 1.28, 1.5, M.black, INFO.lcd);
+  box(7.4, 12.4, 5.8, 7.6, 1.66, 2.2, M.black, INFO.lcd);
+  const lcdTex = canvasTex(720, 260, () => {});
+  const lcd = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 2.6), new THREE.MeshBasicMaterial({map:lcdTex, toneMapped:false}));
+  lcd.position.set(X(10.99), 7.2, Z(1.27)); lcd.userData.info = INFO.lcd; scene.add(lcd);
+
+  const pbCabTex = pbTex(8.3, 5.3, {rails:true, draw:(g, k, w, h) => {
+    g.font = `800 ${Math.round(.62 * k)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const lab = [['1', 1.0], ['2', 2.6], ['3', 4.2], ['4', 5.8], ['MODO', 7.5]];
+    lab.forEach(([t, cx]) => { g.lineWidth = 8; g.strokeStyle = '#f8f8f5'; g.strokeText(t, cx * k, h - 1.25 * k); g.fillStyle = '#1b2a6b'; g.fillText(t, cx * k, h - 1.25 * k); });
+  }});
+  const pbCab = box(6.85, 15.15, .3, 5.6, .6, 1, M.white, INFO.pbCab);
+  pbCab.material = [M.white, M.white, M.white, M.white, new THREE.MeshStandardMaterial({map:pbCabTex, roughness:.7}), M.white];
+  const cabBtn = [];
+  for (let n = 1; n <= 4; n++) cabBtn[n] = makeButton(new THREE.Vector3(X(6.85 + 1.0 + (n - 1) * 1.6), 2.95, Z(.6)), 'z', 0x2563eb, {press:{type:'cab', f:n}, info:I('Destino piso ' + n, `Botón de cabina, pin ${29 + n}. Tocalo para mandar la cabina al piso ${n}.`)});
+  const modeBtn = makeButton(new THREE.Vector3(X(6.85 + 7.5), 2.95, Z(.6)), 'z', 0xea580c, {press:{mode:true}, info:I('Botón MODO', 'Pin 34. Alterna entre FCFS y LOOK y reinicia el contador.')});
+
+  // electrónica de atrás
+  box(2, 12.2, .35, .5, 22, 27.3, M.pcbBlue, INFO.mega);
+  [[2.4, 22.4], [11.8, 22.4], [2.4, 26.9], [11.8, 26.9]].forEach(([x, d]) => cylY(x, d, 0, .35, .25, M.silicone, INFO.mega));
+  box(4, 11.8, .5, 1.35, 22.08, 22.33, M.black, INFO.mega);
+  box(4, 10.9, .5, 1.35, 26.97, 27.22, M.black, INFO.mega);
+  box(11.3, 11.8, .5, 1.35, 22.6, 27.1, M.black, INFO.mega);
+  box(1.4, 3.0, .5, 1.6, 22.7, 23.9, M.steel, INFO.mega);
+  box(1.3, 3.0, .5, 1.6, 25.7, 26.7, M.black, INFO.mega);
+  box(6.9, 8.3, .5, .65, 24, 25.4, M.black, INFO.mega);
+  const pbMain = box(13.5, 21.8, 0, .9, 22, 27.5, M.white, INFO.pbMain);
+  pbMain.material = [M.white, M.white, new THREE.MeshStandardMaterial({map:pbTex(8.3, 5.5, {rails:true}), roughness:.7}), M.white, M.white, M.white];
+  box(39.5, 41.8, 0, 1.1, 23.4, 25, M.term, INFO.psu);
+  box(39.2, 40, .2, .9, 23.8, 24.6, M.black, INFO.psu);
+
+  // driver atrás de B
+  box(30.4, 34, 37.5, 41, 20, 20.15, M.pcbGreen, INFO.driver);
+  box(31.2, 32.6, 38.6, 40.3, 20.15, 20.42, M.black, INFO.driver);
+  box(32.9, 33.8, 39.4, 40.8, 20.15, 20.75, M.white, INFO.driver);
+  [37.9, 38.3, 38.7, 39.1].forEach(h => cylZ(33.4, h, 20.15, 20.35, .13, M.red, INFO.driver, null, 10));
+
+  return {cabinG, pulleyTop, pulleyBot, texL, texR, lcdTex, hall, cabBtn, modeBtn, swLow, swTop};
+}
+
+function makePulley(h, hubToMotor, info){
+  const g = new THREE.Group();
+  const add = (geo, mat) => { geo.rotateX(Math.PI / 2); const m = shadow(new THREE.Mesh(geo, mat)); m.userData.info = info; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(.95, .95, .7, 30), M.alu);
+  const f1 = add(new THREE.CylinderGeometry(1.18, 1.18, .07, 36), M.alu); f1.position.z = .385;
+  const f2 = add(new THREE.CylinderGeometry(1.18, 1.18, .07, 36), M.alu); f2.position.z = -.385;
+  const hub = add(new THREE.CylinderGeometry(.62, .62, .7, 28), M.alu); hub.position.z = -.77;
+  const scr = new THREE.Mesh(new THREE.BoxGeometry(.22, .25, .22), M.black); scr.position.set(0, .6, -.77); g.add(scr);
+  const bore = new THREE.Mesh(new THREE.CircleGeometry(.26, 16), M.black); bore.position.z = .43; g.add(bore);
+  g.position.set(X(33), h, Z(16.5));
+  scene.add(g); return g;
+}
+function hexNut(d1, d2, r, info){ cylZ(33, 4.4, d1, d2, r, M.steel, info, null, 6); }
+function makeButton(pos, face, color, data){
+  const g = new THREE.Group();
+  const body = shadow(new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, .36), M.btnBody)); body.position.z = .18;
+  const capMat = new THREE.MeshStandardMaterial({color, roughness:.45, emissive:color, emissiveIntensity:0});
+  const cg = new THREE.CylinderGeometry(.47, .47, .34, 24); cg.rotateX(Math.PI / 2);
+  const cap = shadow(new THREE.Mesh(cg, capMat)); cap.position.z = .53;
+  body.userData = data; cap.userData = data;
+  g.add(body, cap);
+  if (face === 'x') g.rotation.y = Math.PI / 2;
+  if (face === 'y') g.rotation.x = -Math.PI / 2;
+  if (face === '-y') g.rotation.x = Math.PI / 2;
+  g.position.copy(pos); scene.add(g);
+  return {g, cap, capMat, t:0};
+}
+function arrow(x, h, d, up){
+  const s = new THREE.Shape(); const k = .38;
+  if (up) { s.moveTo(-k, -k * .6); s.lineTo(k, -k * .6); s.lineTo(0, k * .7); } else { s.moveTo(-k, k * .6); s.lineTo(k, k * .6); s.lineTo(0, -k * .7); }
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(s), new THREE.MeshBasicMaterial({color:up ? 0x1f9d55 : 0xd42f2f}));
+  m.rotation.y = Math.PI / 2; m.position.set(X(x), h, Z(d)); scene.add(m);
+}
+
+
+
+/* ---------- cables ---------- */
+const COL = {amarillo:0xf2c200, naranja:0xf07a12, verde:0x1fa64b, azul:0x2a6fe0, morado:0x8e44d6, gris:0x8a8f96, blanco:0xeeeeee, cafe:0x8b5a2b, negro:0x1b1b1b, rojo:0xd33a2c};
+const COLN = {amarillo:'amarillo', naranja:'naranja', verde:'verde', azul:'azul', morado:'morado', gris:'gris', blanco:'blanco', cafe:'café', negro:'negro', rojo:'rojo'};
+const hex = c => '#' + c.toString(16).padStart(6, '0');
+const MEGA_TOP = {8:6.04, 9:5.78, 10:5.53, 11:5.28, 20:10.26, 21:10.51};
+function megaPin(p){
+  if (typeof p === 'number' && p >= 22) { const row = Math.floor((p - 22) / 2); return [p % 2 === 0 ? 11.43 : 11.68, 1.35, 22.85 + row * .254]; }
+  if (MEGA_TOP[p]) return [MEGA_TOP[p], 1.35, 22.2];
+  return {'5V':[5.68, 1.35, 27.1], GND1:[5.94, 1.35, 27.1], GND2:[6.19, 1.35, 27.1]}[p];
+}
+function toMega(p){
+  const e = megaPin(p);
+  if (typeof p === 'number' && p >= 22) return [[12.7, .45, e[2]], [e[0] + .35, 2.3, e[2]], [e[0], 2.0, e[2]], e];
+  if (e[2] < 23) return [[e[0], .4, 21.5], [e[0], 2.2, 21.9], [e[0], 1.9, 22.2], e];
+  return [[e[0], .5, 21.4], [e[0], 2.8, 23.4], [e[0], 2.8, 26.6], [e[0], 2.0, 27.1], e];
+}
+const toRail = x => [[x, .35, 21.65], [x, 1.9, 22.15], [x, 1.5, 22.3], [x, .92, 22.3]];
+function pinWhere(p){
+  if (p >= 22) return `En la doble fila del borde derecho del Mega (el lado contrario al USB). Contando desde arriba es la fila ${Math.floor((p - 22) / 2) + 2} (la fila 1 son los dos 5V), columna ${p % 2 === 0 ? 'de adentro' : 'de la orilla'}. Confirmalo con el número impreso junto al pin.`;
+  if (p >= 8 && p <= 11) return 'En la fila de arriba del Mega, grupo PWM: el orden es 13, 12, 11, 10, 9, 8 y después viene un espacio.';
+  if (p === 20 || p === 21) return `En la fila de arriba, al final del grupo COMMUNICATION, rotulado ${p === 20 ? 'SDA' : 'SCL'}. No uses A4 ni A5 (eso es del Uno).`;
+  return '';
+}
+
+const CONN = [], wireMeshes = [];
+const V = p => new THREE.Vector3(X(p[0]), p[1], Z(p[2]));
+function wire(conn, pts, color, kind){
+  const curve = new THREE.CatmullRomCurve3(pts.map(V), false, 'centripetal');
+  const mat = new THREE.MeshStandardMaterial({color, roughness:.5, emissive:color, emissiveIntensity:0, transparent:true, opacity:1});
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(60, pts.length * 22), .075, 7, false), mat);
+  m.castShadow = true; m.userData.conn = conn.id; scene.add(m); wireMeshes.push(m);
+  const len = curve.getLength();
+  conn.wires.push({mesh:m, len, color, kind, pts});
+  return len;
+}
+function addConn(o){ o.wires = []; CONN.push(o); return o; }
+function jumperText(len, kind){
+  const n = Math.max(1, Math.ceil(len / 18));
+  if (kind === 'fm') return {mm:0, mh:n, t:`${Math.round(len)} cm: ${n} macho-hembra (la hembra va en el pin del módulo)`};
+  return {mm:1, mh:n - 1, t:`${Math.round(len)} cm: ` + (n === 1 ? '1 macho-macho' : `1 macho-macho + ${n - 1} macho-hembra de alargue`)};
+}
+const railX = {}; let railI = 0;
+const nextRail = id => (railX[id] = 14.45 + (railI++) * .5);
+
+function buildWires(P){
+  // tierra del Mega
+  const g = addConn({id:'gnd', grp:'Tierra común', t:'Mega GND a la fila azul', color:COL.negro,
+    ends:[{p:megaPin('GND2'), l:'GND del Mega'}, {p:[14.0, .92, 22.3], l:'Fila azul'}]});
+  wire(g, [megaPin('GND2'), [6.19, 2.2, 27.25], [6.6, 2.9, 26.6], [9.5, 2.9, 24.3], [12.9, 2.3, 22.6], [14.0, 1.9, 22.25], [14.0, 1.5, 22.3], [14.0, .92, 22.3]], COL.negro, 'mm');
+  g.jumpers = [jumperText(g.wires[0].len)];
+  g.items = [`<b>Cable negro</b>: pin GND de la fila de abajo del Mega (junto a 5V) → fila azul de la protoboard principal.`,
+    'Desde ahora, "fila GND" es cualquier agujero de esa fila azul. Hacé esta conexión primero.'];
+
+  // botones
+  const palette = ['amarillo','naranja','verde','azul','morado','gris','cafe'];
+  let pc = 0, lane = 0;
+  function buttonConn(o){
+    const cname = palette[pc++ % palette.length], col = COL[cname];
+    const c = addConn({id:o.id, grp:o.grp, t:o.t, color:col, pin:o.pin, ends:[{p:o.sig, l:o.short}, {p:megaPin(o.pin), l:'Pin ' + o.pin}, {p:[0, 0, 0], l:'Fila azul'}]});
+    const xr = nextRail(o.id); c.ends[2].p = [xr, .92, 22.3];
+    const ls = wire(c, o.sigPath.concat(toMega(o.pin)), col, 'mm');
+    const lg = wire(c, o.gndPath(xr).concat(toRail(xr)), COL.negro, 'mm');
+    c.items = [`<span class="sw" style="background:${hex(col)}"></span><b>Señal</b> (aquí ${COLN[cname]}): agujero de ${o.upWord || 'arriba'} de la canaleta, en la columna de la pata izquierda → <b>pin ${o.pin}</b> del Mega.`,
+      `<span class="sw" style="background:#1b1b1b"></span><b>GND</b> (negro): agujero del otro lado de la canaleta, en la columna de la pata derecha → fila azul.`,
+      `<b>Dónde está el pin ${o.pin}:</b> ${pinWhere(o.pin)}`,
+      `<b>Largo de la señal:</b> ${jumperText(ls).t}. <b>GND:</b> ${jumperText(lg).t}.`].concat(o.extra || []);
+    c.jumpers = [jumperText(ls), jumperText(lg)];
+    return c;
+  }
+  const PIN = {up:{1:22, 2:23, 3:25}, dn:{2:24, 3:26, 4:27}};
+  function hallPaths(hc, dc, k, sig){
+    const xl = 44.25 + (k % 5) * .13, dl = 18.6 + k * .05, dB = 20.55 + k * .12;
+    const s = sig ? [43.9, hc + .75, dc - .254] : [43.9, hc - .75, dc + .254];
+    const o = sig ? 0 : .07;
+    return {s, head:[s, [44.5, s[1], s[2]], [xl + o, s[1] - .6, dl + o], [xl + o, 1.2, dl + o], [xl + o, .3, dl + .6 + o], [xl - .3, .3, dB + o], [30, .3, dB + o]]};
+  }
+  [[1, 'up', 16.7], [2, 'up', 15.6], [2, 'dn', 17.8], [3, 'up', 15.6], [3, 'dn', 17.8], [4, 'dn', 16.7]].forEach(([n, type, dc]) => {
+    const fy = 7.6 + 10 * (n - 1), hc = fy + 2.15, k = lane++;
+    const S = hallPaths(hc, dc, k, true), G = hallPaths(hc, dc, k, false);
+    const word = type === 'up' ? 'subir' : 'bajar';
+    buttonConn({id:`h-${type}-${n}`, grp:'Botones de pasillo', t:`Piso ${n}, ${word}`, short:`P${n} ${word}`, pin:PIN[type][n], sig:S.s,
+      sigPath:S.head.concat([[13.2, .3, 20.55 + k * .12]]),
+      gndPath:xr => G.head.concat([[xr + .5, .3, 21.2]]),
+      extra:[`El cable baja pegado al lateral derecho, por fuera, y cruza por detrás de la torre. Sujetalo con masking tape.`]});
+  });
+  // cabina
+  for (let n = 1; n <= 5; n++) {
+    const k = n - 1, xc = n < 5 ? 7.85 + (n - 1) * 1.6 : 14.35;
+    const sig = [xc - .254, 3.7, .6], gnd = [xc + .254, 2.2, .6];
+    const hs = 4.95 + k * .1, hg = 1.0 - k * .08, xs = 21.45 + k * .12, dB = 20.15 + k * .08;
+    const pin = n < 5 ? 29 + n : 34;
+    buttonConn({id:n < 5 ? 'c-' + n : 'c-modo', grp:'Botones de cabina (tablero)', t:n < 5 ? 'Destino piso ' + n : 'Botón MODO', short:n < 5 ? 'Cabina ' + n : 'MODO', pin, sig,
+      sigPath:[sig, [sig[0], 3.7, .25], [sig[0], hs, .22], [15.6, hs, .25], [xs - .3, hs, .35], [xs, hs - .4, 1.5], [xs, 3, 2.2], [xs, .3, 2.8], [xs, .3, 19.6 + k * .08], [xs - .6, .3, dB], [13.2, .3, dB]],
+      gndPath:xr => [gnd, [gnd[0], 2.2, .25], [gnd[0], hg, .22], [15.6, hg, .25], [xs - .25, hg, .35], [xs + .06, .6, 1.5], [xs + .06, .3, 2.8], [xs + .06, .3, 19.7 + k * .08], [xr + .5, .3, 21.2]],
+      extra:['Los cables corren por el frente de la protoboard, doblan por la orilla derecha del tablero y siguen por la base hacia atrás.']});
+  }
+  // finales de carrera
+  const kLow = lane++, kTop = lane++;
+  const trunk = (k, o) => [[44.75 + o, .3, 9.7], [44.75 + o, .3, 18.2], [44.55 + o, .3, 20.3], [43.8, .3, 20.55 + k * .12 + o], [30, .3, 20.55 + k * .12 + o], [13.2, .3, 20.55 + k * .12 + o]];
+  buttonConn({id:'sw-low', grp:'Finales de carrera', t:'Final de carrera de abajo', short:'Final abajo', pin:35, sig:[36.25, 4.85, 10.5], upWord:'un lado',
+    sigPath:[[36.25, 4.85, 10.5], [36.25, 6.2, 10.5], [36.25, 6.6, 9.9], [36.25, 6.2, 9.15], [36.2, .45, 9.1], [36.6, .3, 8.9], [43.7, .3, 8.9]].concat(trunk(kLow, 0)),
+    gndPath:xr => [[36.75, 4.85, 12.0], [36.75, 6.1, 12.0], [37.9, 6.4, 12.0], [38.0, 6.2, 9.35], [38.0, .45, 9.3], [38.4, .3, 9.05], [43.7, .3, 9.05]].concat(trunk(kLow, .08).slice(0, 4), [[xr + .5, .3, 21.2]]),
+    extra:['<b>Importante:</b> los cables salen hacia el frente, fuera del tacón. La cabina baja con el tacón sobre el botón y los jumpers quedan libres a los lados.']});
+  buttonConn({id:'sw-top', grp:'Finales de carrera', t:'Final de carrera de arriba', short:'Final arriba', pin:36, sig:[36.25, 46.15, 10.5], upWord:'un lado',
+    sigPath:[[36.25, 46.15, 10.5], [36.25, 44.9, 10.45], [36.25, 44.6, 9.2], [41.9, 44.6, 9.2], [42.75, 44.2, 9.25], [42.75, 2, 9.25], [43.1, .35, 9.3]].concat(trunk(kTop, .16)),
+    gndPath:xr => [[36.75, 46.15, 12.0], [36.75, 44.9, 12.0], [37.9, 44.75, 12.0], [38.0, 44.6, 9.35], [41.9, 44.5, 9.35], [42.9, 44.1, 9.4], [42.9, 2, 9.4], [43.3, .35, 9.45]].concat(trunk(kTop, .24).slice(0, 4), [[xr + .5, .3, 21.2]]),
+    extra:['Los cables bajan por la orilla de adelante del lateral derecho y se juntan con los de pasillo.']});
+
+  // motor
+  const mo = addConn({id:'motor', grp:'Motor', t:'Motor al driver', color:0x2a6fe0, ends:[{p:[35.4, 42.6, 18.4], l:'Motor'}, {p:[33.3, 40.6, 20.8], l:'Driver'}]});
+  wire(mo, [[35.6, 42.6, 18.4], [36.4, 42.4, 19.3], [35.8, 41.6, 20.3], [33.3, 40.6, 20.8]], 0x2a6fe0, 'own');
+  mo.items = ['El cable del motor pasa por el agujero de 1.5 × 1 cm en B y se enchufa en el conector blanco del driver. Entra de una sola forma.'];
+  const inC = [COL.amarillo, COL.naranja, COL.verde, COL.azul];
+  const di = addConn({id:'drv-in', grp:'Motor', t:'Driver IN1 a IN4', color:COL.amarillo, ends:[{p:[30.6, 39.5, 20.8], l:'IN1-IN4'}, {p:megaPin(9), l:'Pines 8-11'}]});
+  const inLens = [8, 9, 10, 11].map((pin, k) => { const h = 39.9 - k * .25;
+    return wire(di, [[30.6, h, 20.8], [30.6, h, 21.1], [30.1 - k * .12, h - 1, 21.15], [29.9 - k * .12, 1.2, 21.2], [29.6 - k * .12, .3, 21.6 + k * .07], [8, .3, 21.6 + k * .07]].concat(toMega(pin)), inC[k], 'fm'); });
+  di.items = ['IN1 → pin 8, IN2 → pin 9, IN3 → pin 10, IN4 → pin 11. <b>En ese orden</b>: si se cruzan, el motor zumba y no gira.',
+    `<b>Dónde:</b> ${pinWhere(8)}`, 'Los pines del driver son machos, así que el lado del driver lleva la hembra del jumper.',
+    `<b>Largo:</b> ${jumperText(Math.max(...inLens), 'fm').t} cada uno.`];
+  di.jumpers = inLens.map(l => jumperText(l, 'fm'));
+  const dp = addConn({id:'drv-pwr', grp:'Motor', t:'Driver + y − a la bornera', color:COL.rojo, ends:[{p:[31.15, 37.75, 20.8], l:'Driver + −'}, {p:[40.95, 1.15, 24.0], l:'Bornera'}]});
+  const pl1 = wire(dp, [[31.0, 37.75, 20.8], [31.0, 37.5, 21.2], [31.6, 30, 21.3], [33, 1.2, 21.35], [34, .3, 21.95], [39.8, .3, 23.0], [40.6, 2.2, 23.75], [40.6, 1.15, 24.0]], COL.rojo, 'fm');
+  const pl2 = wire(dp, [[31.3, 37.75, 20.8], [31.3, 37.5, 21.25], [31.85, 30, 21.35], [33.3, 1.2, 21.45], [34.3, .3, 22.05], [40.3, .3, 23.05], [41.3, 2.2, 23.75], [41.3, 1.15, 24.0]], COL.negro, 'fm');
+  dp.items = ['<span class="sw" style="background:#d33a2c"></span>Driver <b>+</b> (junto a IN4) → tornillo <b>+</b> de la bornera.', '<span class="sw" style="background:#1b1b1b"></span>Driver <b>−</b> → tornillo <b>−</b> de la bornera.',
+    '<b>Nunca</b> conectes aquí el adaptador de 9 V: el motor es de 5 V.', `<b>Largo:</b> ${jumperText(pl1, 'fm').t} cada uno. Pelá la punta macho y apretala en el tornillo.`];
+  dp.jumpers = [jumperText(pl1, 'fm'), jumperText(pl2, 'fm')];
+  const bg = addConn({id:'born-gnd', grp:'Motor', t:'Bornera − a la fila GND', color:COL.negro, ends:[{p:[41.3, 1.15, 24.2], l:'Bornera −'}, {p:[21.25, .92, 22.3], l:'Fila azul'}]});
+  const bl = wire(bg, [[41.3, 1.15, 24.2], [41.3, 2.3, 24.5], [40, .3, 25.9], [24, .3, 25.9], [22.4, .3, 23.8], [21.9, .3, 21.6]].concat(toRail(21.25).slice(1)), COL.negro, 'mm');
+  bg.items = ['Segundo cable en el mismo tornillo <b>−</b> de la bornera → fila azul. Así el Arduino y el driver comparten tierra; sin esto el motor no obedece.', `<b>Largo:</b> ${jumperText(bl).t}.`];
+  bg.jumpers = [jumperText(bl)];
+
+  // LCD
+  const lc = addConn({id:'lcd', grp:'Pantalla', t:'LCD 16x2 I2C', color:COL.morado, ends:[{p:[7.25, 6.4, 1.95], l:'LCD'}, {p:megaPin(20), l:'SDA / SCL'}, {p:megaPin('5V'), l:'5V / GND'}]});
+  const lcdW = [['GND1', 6.0, COL.negro], ['5V', 6.25, COL.rojo], [20, 6.5, COL.azul], [21, 6.75, COL.verde]];
+  const lcdL = lcdW.map(([pin, h, col], k) => wire(lc, [[7.25, h, 1.95], [6.5, h, 1.95], [6.2 + k * .12, 2.5, 2.4], [6.2 + k * .12, .3, 3.2], [6.2 + k * .12, .3, 20.4 + k * .06]].concat(toMega(pin)), col, 'fm'));
+  lc.items = ['<span class="sw" style="background:#1b1b1b"></span>GND → GND del Mega (fila de abajo, junto a 5V).', '<span class="sw" style="background:#d33a2c"></span>VCC → 5V del Mega.',
+    '<span class="sw" style="background:#2a6fe0"></span>SDA → pin 20.', '<span class="sw" style="background:#1fa64b"></span>SCL → pin 21.', `<b>Dónde:</b> ${pinWhere(20)}`,
+    `<b>Largo:</b> ${jumperText(Math.max(...lcdL), 'fm').t} cada uno. Bajan por detrás del tablero, entre las dos escuadras.`];
+  lc.jumpers = lcdL.map(l => jumperText(l, 'fm'));
+
+  // alimentación
+  const ps = addConn({id:'psu', grp:'Alimentación (al final)', t:'Fuente de 5 V a la pared', color:0x151515, ends:[{p:[39.6, .55, 24.2], l:'Bornera'}]});
+  wire(ps, [[39.2, .55, 24.2], [37.5, .2, 27], [36, -1, 33], [30, -1, 40]], 0x151515, 'own');
+  ps.items = ['El jack de la fuente de 5 V 2 A entra en el adaptador de bornera. Se enchufa a la pared solo cuando todo lo demás está conectado.'];
+  const ad = addConn({id:'adapter', grp:'Alimentación (al final)', t:'Adaptador Elegoo 9 V al Mega', color:0xf2f2f2, ends:[{p:[1.3, 1.05, 26.2], l:'Jack del Mega'}]});
+  wire(ad, [[1.3, 1.05, 26.2], [-.3, .9, 26.5], [-2, -.1, 27], [-8, -1, 30]], 0xf2f2f2, 'own');
+  const adp = box(-12, -8, -1, 1.2, 28.5, 32, M.white, INFO.adapter); adp.rotation.y = .5;
+  ad.items = ['Va solo al jack redondo del Mega. Así el ascensor funciona sin la laptop.', 'Si también está el USB conectado no pasa nada: el Mega usa el adaptador.', '<b>Nunca</b> lo conectes al driver ni a la bornera.'];
+
+  // extras visuales: fila azul/roja, pines del driver y del LCD, tornillos de la bornera, tacones
+  box(13.7, 21.6, .9, .93, 22.18, 22.42, std(0x2563eb, .6), INFO.pbMain);
+  box(13.7, 21.6, .9, .93, 27.08, 27.32, std(0xd33a2c, .6), INFO.pbMain);
+  box(30.5, 30.7, 39.0, 40.05, 20.15, 20.8, M.black, INFO.driver);
+  box(30.85, 31.45, 37.65, 37.85, 20.15, 20.8, M.black, INFO.driver);
+  box(7.25, 7.45, 5.9, 6.85, 1.8, 2.1, M.black, INFO.lcd);
+  [40.6, 41.3].forEach(x => cylY(x, 24.0, 1.1, 1.22, .22, M.steel, INFO.psu, null, 12));
+  const pinPos = [];
+  for (let r = 0; r < 18; r++) [11.43, 11.68].forEach(x => pinPos.push([x, 22.596 + r * .254]));
+  for (let x = 4.13; x < 11.75; x += .254) pinPos.push([x, 22.2]);
+  for (let x = 4.13; x < 10.85; x += .254) pinPos.push([x, 27.1]);
+  const pins = new THREE.InstancedMesh(new THREE.BoxGeometry(.11, .04, .11), std(0xd9b34a, .35, .8), pinPos.length);
+  const mtx = new THREE.Matrix4();
+  pinPos.forEach(([x, d], i) => { mtx.makeTranslation(X(x), 1.37, Z(d)); pins.setMatrixAt(i, mtx); });
+  pins.userData.info = INFO.mega; scene.add(pins);
+  box(36, 37, 5.6, 7.6, 10.75, 11.75, M.foam2, INFO.tacon, P.cabinG);
+  box(36, 37, 13.6, 15.6, 10.75, 11.75, M.foam2, INFO.tacon, P.cabinG);
+}
+
+/* ---------- selección y resaltado ---------- */
+let sel = null;
+const markers = new THREE.Group(); scene.add(markers);
+function label(text){
+  const c = document.createElement('canvas'); const g = c.getContext('2d');
+  g.font = `700 44px ${FONT}`; const w = Math.ceil(g.measureText(text).width) + 36; c.width = w; c.height = 72;
+  g.font = `700 44px ${FONT}`; g.fillStyle = 'rgba(21,33,29,.92)';
+  const r = 18; g.beginPath(); g.moveTo(r, 0); g.arcTo(w, 0, w, 72, r); g.arcTo(w, 72, 0, 72, r); g.arcTo(0, 72, 0, 0, r); g.arcTo(0, 0, w, 0, r); g.fill();
+  g.fillStyle = '#fff'; g.textBaseline = 'middle'; g.fillText(text, 18, 38);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false, sizeAttenuation:false, transparent:true}));
+  s.scale.set(.026 * w / 72, .026, 1); s.center.set(.5, -.35); s.renderOrder = 999; return s;
+}
+function highlight(){
+  wireMeshes.forEach(m => {
+    const on = !sel || m.userData.conn === sel.id;
+    m.material.opacity = on ? 1 : .1; m.material.depthWrite = on;
+    m.material.emissiveIntensity = sel && on ? .35 : 0;
+  });
+  while (markers.children.length) markers.remove(markers.children[0]);
+  if (!sel) return;
+  sel.ends.forEach(e => {
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(.2, 16, 12), new THREE.MeshBasicMaterial({color:0xea580c, depthTest:false, transparent:true}));
+    dot.position.copy(V(e.p)); dot.renderOrder = 998; markers.add(dot);
+    const l = label(e.l); l.position.copy(V(e.p)); markers.add(l);
+  });
+}
+function epDir(p){
+  if (p[2] > 19.9 && p[1] < 3) return [-.15, 1.25, .75];
+  if (p[2] > 19.9) return [.15, .25, 1];
+  if (p[0] > 43) return [1, .35, -.1];
+  if (p[2] < 2.5) return [0, .45, -1];
+  return [.3, .35, -1];
+}
+function fitTo(points, minR, d){
+  const b = new THREE.Box3(); points.forEach(p => b.expandByPoint(V(p)));
+  const c = b.getCenter(new THREE.Vector3()), r = Math.max(minR || 3, b.getSize(new THREE.Vector3()).length() / 2);
+  const pr = $('#panel').getBoundingClientRect(), W = innerWidth, H = innerHeight;
+  const bottom = pr.width > W * .6;
+  const fv = bottom ? 1 - pr.height / H : 1, fh = bottom ? 1 : 1 - (pr.width + 16) / W;
+  const tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const half = Math.min(Math.atan(tv * fv), Math.atan(tv * camera.aspect * fh));
+  const dist = r / Math.sin(half) * 1.05;
+  const dir = d ? new THREE.Vector3(d[0], d[1], -d[2]).normalize() : camera.position.clone().sub(controls.target).normalize();
+  flyTo(c.clone().add(dir.multiplyScalar(dist)), c);
+}
+let tween = null;
+function flyTo(p, t){
+  if (reduceMotion) { camera.position.copy(p); controls.target.copy(t); return; }
+  tween = {p0:camera.position.clone(), t0:controls.target.clone(), p1:p, t1:t, k:0};
+}
+function select(id, fly){
+  sel = CONN.find(c => c.id === id) || null;
+  highlight(); renderList(); renderDetail();
+  if (sel) { $('#xray').checked = true; setXray(true); }
+  if (sel && fly !== false) fitTo(sel.wires.flatMap(w => w.pts), 6, /cabina|Pantalla/.test(sel.grp) ? [.55, .6, -1] : [.8, .75, .85]);
+}
+
+function setXray(on){ M.tower.transparent = on; M.tower.opacity = on ? .2 : 1; M.tower.depthWrite = !on; M.tower.needsUpdate = true; }
+/* ---------- progreso ---------- */
+const KEY = 'ascensor-cables-v1';
+let done = new Set();
+try { done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch (e) {} }
+function progress(){
+  const n = CONN.filter(c => done.has(c.id)).length;
+  $('#progT').textContent = `${n} de ${CONN.length} conectadas`;
+  $('#progB').style.width = (100 * n / CONN.length) + '%';
+}
+
+/* ---------- interfaz ---------- */
+function renderList(){
+  const L = $('#list'); let html = '', grp = '';
+  html += `<button class="all" data-id="">Ver todos los cables</button>`;
+  CONN.forEach(c => {
+    if (c.grp !== grp) { grp = c.grp; html += `<h3>${grp}</h3>`; }
+    html += `<button data-id="${c.id}" aria-current="${sel && sel.id === c.id}"><span class="dot" style="background:${hex(c.color)};border:1px solid rgba(0,0,0,.2)"></span>${c.t}${c.pin ? ` <small>pin ${c.pin}</small>` : ''}${done.has(c.id) ? '<span class="ck">Listo</span>' : ''}</button>`;
+  });
+  L.innerHTML = html;
+  L.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { if (b.dataset.id) select(b.dataset.id); else { select(null); goHome(); } }));
+  progress();
+}
+function renderDetail(){
+  const d = $('#detail');
+  if (!sel) { d.hidden = true; return; }
+  d.hidden = false;
+  $('#dGrp').textContent = sel.grp; $('#dT').textContent = sel.t;
+  $('#dList').innerHTML = (sel.items || []).map(i => `<li>${i}</li>`).join('');
+  $('#dEnds').innerHTML = sel.ends.map((e, i) => `<button data-e="${i}">Ver: ${e.l}</button>`).join('');
+  $('#dEnds').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { const e = sel.ends[+b.dataset.e]; fitTo([e.p], 2.6, epDir(e.p)); }));
+  const on = done.has(sel.id);
+  $('#done').setAttribute('aria-pressed', String(on)); $('#done').textContent = on ? 'Conectado' : 'Ya lo conecté';
+  $('.pbody').scrollTop = 0;
+}
+$('#prev').addEventListener('click', () => { const i = CONN.indexOf(sel); select(CONN[(i - 1 + CONN.length) % CONN.length].id); });
+$('#next').addEventListener('click', () => { const i = CONN.indexOf(sel); select(CONN[(i + 1) % CONN.length].id); });
+$('#done').addEventListener('click', () => { if (!sel) return; done.has(sel.id) ? done.delete(sel.id) : done.add(sel.id); save(); renderDetail(); renderList(); });
+$('#infoX').addEventListener('click', () => { $('#info').hidden = true; });
+
+/* ---------- cámara y pestañas ---------- */
+function goHome(){
+  const s = camera.aspect < 1 ? 1 / Math.pow(camera.aspect, .62) : 1;
+  const t = new THREE.Vector3(3, 18, 3);
+  flyTo(new THREE.Vector3(58, 46, 80).sub(t).multiplyScalar(s * 1.3).add(t), t);
+}
+function layout(){
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  const r = $('#panel').getBoundingClientRect();
+  if (r.width > w * .6) camera.setViewOffset(w, h, 0, Math.round(r.height * .45), w, h);
+  else camera.setViewOffset(w, h, Math.round((r.width + 16) / 2), 0, w, h);
+  camera.updateProjectionMatrix();
+}
+let show3d = true;
+function tab(is3d){
+  show3d = is3d;
+  $('#t3d').setAttribute('aria-selected', String(is3d)); $('#tdg').setAttribute('aria-selected', String(!is3d));
+  $('#panel').hidden = !is3d; $('#diagrams').hidden = is3d; canvas.style.visibility = is3d ? 'visible' : 'hidden';
+  if (!is3d) $('#info').hidden = true;
+}
+$('#t3d').addEventListener('click', () => tab(true));
+$('#tdg').addEventListener('click', () => tab(false));
+
+/* ---------- toques en el modelo ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let down = null;
+canvas.addEventListener('pointerdown', e => { down = {x:e.clientX, y:e.clientY, t:performance.now()}; tween = null; });
+canvas.addEventListener('pointerup', e => {
+  if (!down) return;
+  const ok = Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6 && performance.now() - down.t < 600; down = null;
+  if (!ok) return;
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible && h.object.userData && (h.object.userData.conn || h.object.userData.info || h.object.userData.press) && !(h.object.material && h.object.material.opacity < .5));
+  if (!hit) { $('#info').hidden = true; return; }
+  const u = hit.object.userData;
+  let id = u.conn;
+  if (!id && u.press) id = u.press.mode ? 'c-modo' : u.press.type === 'cab' ? 'c-' + u.press.f : `h-${u.press.type}-${u.press.f}`;
+  if (!id && u.info) id = {[INFO.lowSw.t]:'sw-low', [INFO.topSw.t]:'sw-top', [INFO.lcd.t]:'lcd', [INFO.driver.t]:'drv-in', [INFO.psu.t]:'drv-pwr', [INFO.adapter.t]:'adapter', [INFO.motor.t]:'motor'}[u.info.t];
+  if (id) { select(id); $('#info').hidden = true; }
+  else if (u.info) { $('#infoT').textContent = u.info.t; $('#infoD').textContent = u.info.d; $('#info').hidden = false; }
+});
+
+/* ---------- arranque ---------- */
+function init(){
+  const P = build();
+  P.lcdTex.userData.ctx && (function(){
+    const g = P.lcdTex.userData.ctx, w = 720, h = 260; g.fillStyle = '#2a52cf'; g.fillRect(0, 0, w, h);
+    const cw = (w - 40) / 16, ch = (h - 50) / 2; g.font = "bold 58px 'Courier New', monospace"; g.textAlign = 'center'; g.textBaseline = 'middle';
+    ['Piso 2      LOOK', 'Rec:00       P:0'].forEach((line, r) => { for (let i = 0; i < 16; i++) { const x = 20 + i * cw, y = 25 + r * ch;
+      g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(x + 3, y + 6, cw - 6, ch - 12); if (line[i] !== ' ') { g.fillStyle = '#f2f6ff'; g.fillText(line[i], x + cw / 2, y + ch / 2 + 2); } } });
+    P.lcdTex.needsUpdate = true;
+  })();
+  buildWires(P);
+  // resumen de jumpers
+  let mm = 0, mh = 0; CONN.forEach(c => (c.jumpers || []).forEach(j => { mm += j.mm; mh += j.mh; }));
+  $('#jump').textContent = `Con estos recorridos vas a usar unos ${mm} jumpers macho-macho y ${mh} macho-hembra. Compraste 80 y 120: te sobran.`;
+  const setLift = v => { P.cabinG.position.y = (v - 1) * 10; };
+  setLift(2);
+  $('#lift').addEventListener('input', e => setLift(+e.target.value));
+  $('#xray').addEventListener('change', e => setXray(e.target.checked));
+  renderList();
+  layout();
+  const s = camera.aspect < 1 ? 1 / Math.pow(camera.aspect, .62) : 1, t = new THREE.Vector3(3, 18, 3);
+  camera.position.copy(new THREE.Vector3(58, 46, 80).sub(t).multiplyScalar(s * 1.3).add(t)); controls.target.copy(t); controls.update();
+  addEventListener('resize', layout);
+  if (window.ResizeObserver) new ResizeObserver(layout).observe($('#panel'));
+  $('#loading').remove();
+  let last = performance.now();
+  renderer.setAnimationLoop(now => {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!show3d) return;
+    if (tween) {
+      tween.k = Math.min(1, tween.k + dt / .75);
+      const e = 1 - Math.pow(1 - tween.k, 3);
+      camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e);
+      if (tween.k >= 1) tween = null;
+    }
+    controls.update(); renderer.render(scene, camera);
+  });
+}
+const fontsReady = document.fonts && document.fonts.load ? Promise.race([document.fonts.load(`800 40px ${FONT}`), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve();
+fontsReady.then(init, init);
+})();
+</script>
+</body>
+</html>
