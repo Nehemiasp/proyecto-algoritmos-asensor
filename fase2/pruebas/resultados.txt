@@ -1,0 +1,71 @@
+=== demo
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  Modo FCFS: 6 pisos recorridos, 48.1 s hasta terminar. Paradas/llegadas: 1 -> 2 -> 3 -> 4 -> 3 -> 2 -> 3
+    LCD: |Piso 3    FCFS  |
+         |Rec:06        P0|
+    [   9.86 s] Llamada piso 4 bajar
+    [  10.06 s] Llamada piso 2 subir
+    [  10.26 s] Llamada piso 3 subir
+    [  16.68 s] Piso 2 | recorridos: 1
+    [  23.51 s] Piso 3 | recorridos: 2
+    [  30.34 s] Piso 4 | recorridos: 3
+    [  39.67 s] Piso 3 | recorridos: 4
+    [  46.49 s] Piso 2 | recorridos: 5
+    [  55.82 s] Piso 3 | recorridos: 6
+  Modo LOOK: 3 pisos recorridos, 27.6 s hasta terminar. Paradas/llegadas: 1 -> 2 -> 3 -> 4
+    LCD: |Piso 4    LOOK  |
+         |Rec:03        P0|
+    [  77.86 s] Llamada piso 4 bajar
+    [  78.06 s] Llamada piso 2 subir
+    [  78.26 s] Llamada piso 3 subir
+    [  84.68 s] Piso 2 | recorridos: 1
+    [  94.01 s] Piso 3 | recorridos: 2
+    [ 103.34 s] Piso 4 | recorridos: 3
+=== repetido
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  5 pulsaciones de piso 2 subir: recorridos=1, tiempo 8.8 s
+    [   9.56 s] Llamada piso 2 subir
+    [   9.71 s] Llamada piso 2 subir
+    [   9.86 s] Llamada piso 2 subir
+    [  10.01 s] Llamada piso 2 subir
+    [  10.16 s] Llamada piso 2 subir
+    [  16.38 s] Piso 2 | recorridos: 1
+=== opuestos
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  Cabina 4 + piso 2 subir y bajar a la vez: recorridos=5, 41.5 s
+    [   9.56 s] Cabina destino 4
+    [   9.76 s] Llamada piso 2 subir
+    [   9.76 s] Llamada piso 2 bajar
+    [  16.38 s] Piso 2 | recorridos: 1
+    [  25.71 s] Piso 3 | recorridos: 2
+    [  32.54 s] Piso 4 | recorridos: 3
+    [  41.87 s] Piso 3 | recorridos: 4
+    [  48.69 s] Piso 2 | recorridos: 5
+=== modo
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  Se aprieta MODO con la cabina a 0.44 pisos del 1 (en movimiento)
+    [   9.56 s] Cabina destino 4
+    [  12.56 s] Cambio de modo solicitado
+    [  16.38 s] Piso 2 | recorridos: 1
+    [  16.38 s] Modo: FCFS
+    Posicion: el programa cree piso 2; la cabina real esta a 6827 pasos del piso 1 (1.00 pisos). COINCIDEN
+    LCD: |Piso 2    FCFS  |
+         |Rec:00        P0|
+=== resbalo
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  En piso 3. Simulamos que la cabina perdio 500 pasos (resbalo).
+    Posicion: el programa cree piso 3; la cabina real esta a 13154 pasos del piso 1 (1.93 pisos). DESFASADOS
+    [  25.76 s] Cabina destino 1
+    [  32.58 s] Piso 2 | recorridos: 3
+    [  38.91 s] Piso 1 | recorridos: 4
+    Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+=== actual
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  Cabina quieta en piso 1, apretan el boton 1: puerta abierta, pasos del motor 0, recorridos 0
+=== puerta2
+  Calibracion: 9.6 s.     Posicion: el programa cree piso 1; la cabina real esta a 0 pasos del piso 1 (0.00 pisos). COINCIDEN
+  Puerta abierta en piso 3; a los 1.5 s apretan el boton 3 otra vez.
+  La puerta estuvo abierta 4.02 s (normal: 2.5 s). Pasos del motor: 0. Pisos agregados: 0
+    [  24.73 s] Puerta abierta de nuevo en piso 3
+=== homingfail
+  irAlOrigen() devolvio false tras 34.1 s y 34134 pasos (limite: 5 pisos = 34135)
